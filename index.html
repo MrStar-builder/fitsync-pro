@@ -218,7 +218,17 @@
             <!-- Render các tuần bằng JS -->
           </div>
 
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" onclick="openPublicWorkoutsModal()"
+              class="px-3.5 py-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-300 border border-violet-500/30 text-xs font-extrabold transition flex items-center gap-1.5">
+              <span>🌐</span>
+              <span>Lịch tập cộng đồng</span>
+            </button>
+            <button type="button" onclick="openPublishWeekModal()"
+              class="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold transition flex items-center gap-1.5">
+              <span>📤</span>
+              <span>Công khai tuần</span>
+            </button>
             <button type="button" onclick="cloneWeekFromW1()"
               class="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold transition flex items-center gap-1.5">
               <span>🧬</span>
@@ -960,11 +970,101 @@
     </div>
   </div>
 
+
+  <!-- ==================== MODAL THƯ VIỆN LỊCH TẬP CỘNG ĐỒNG ==================== -->
+  <div id="public-workouts-modal" onclick="closePublicWorkoutsModal()"
+    class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div onclick="event.stopPropagation()"
+      class="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[94vh] flex flex-col overflow-hidden animate-modal">
+      <div class="flex items-center justify-between gap-3 p-5 sm:p-6 border-b border-slate-800 shrink-0">
+        <div class="min-w-0">
+          <h3 class="text-lg sm:text-xl font-extrabold text-white">🌐 Thư viện lịch tập cộng đồng</h3>
+          <p class="text-xs text-slate-400 mt-1">Tham khảo buổi tập được chia sẻ bởi những người dùng FitSync Pro</p>
+        </div>
+        <button type="button" onclick="closePublicWorkoutsModal()"
+          class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold shrink-0">✕ Đóng</button>
+      </div>
+
+      <div class="overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div class="rounded-2xl bg-cyan-500/10 border border-cyan-500/25 p-3 text-xs text-cyan-100 leading-relaxed">
+          Lịch được công khai sẽ hiển thị cho các tài khoản FitSync Pro kết nối cùng Firebase. Khi áp dụng, dữ liệu được sao chép độc lập vào tài khoản của bạn; chỉnh sửa về sau không làm thay đổi lịch gốc.
+        </div>
+
+        <section id="public-workouts-list-view" class="space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm font-extrabold text-white">Danh sách lịch tập đã công khai</h4>
+              <p class="text-[11px] text-slate-400">Chọn một lịch để xem chi tiết từng ngày hoặc áp dụng toàn bộ tuần</p>
+            </div>
+            <button type="button" onclick="loadPublicWorkoutList()"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold">↻ Làm mới</button>
+          </div>
+          <input id="public-workouts-search" type="search" oninput="filterPublicWorkoutList(this.value)"
+            placeholder="Tìm theo tên lịch, người chia sẻ hoặc bài tập..."
+            class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-violet-500" />
+          <div id="public-workouts-list" class="rounded-2xl border border-slate-800 bg-slate-950/50 overflow-hidden">
+            <div class="p-8 text-center text-xs text-slate-400">Đang tải danh sách lịch tập...</div>
+          </div>
+        </section>
+
+        <section id="public-workouts-publish-view" class="hidden space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm font-extrabold text-white">Công khai tuần đang chọn</h4>
+              <p id="public-publish-week-label" class="text-xs text-cyan-300 mt-1">W1</p>
+            </div>
+            <button type="button" onclick="showPublicWorkoutView('list')" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">← Danh sách</button>
+          </div>
+          <div class="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <div>
+              <label for="public-week-title" class="block text-xs font-bold text-slate-300 mb-1.5">Tên lịch tập *</label>
+              <input id="public-week-title" type="text" maxlength="80" placeholder="VD: Upper / Lower – 4 buổi mỗi tuần"
+                class="w-full px-3.5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div>
+              <label for="public-week-description" class="block text-xs font-bold text-slate-300 mb-1.5">Mô tả / mục tiêu (không bắt buộc)</label>
+              <textarea id="public-week-description" rows="3" maxlength="350" placeholder="Mục tiêu, kinh nghiệm phù hợp, số buổi mỗi tuần..."
+                class="w-full px-3.5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-emerald-500"></textarea>
+            </div>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 cursor-pointer">
+              <input id="public-week-consent" type="checkbox" class="mt-0.5 w-4 h-4 accent-amber-500 shrink-0" />
+              <span class="text-[11px] text-amber-100 leading-relaxed">Tôi đồng ý công khai tên lịch, tên hiển thị và tên tài khoản người chia sẻ, tên bài tập, dụng cụ, mức tạ/kháng lực, số hiệp, số lần lặp và ghi chú kỹ thuật trong tuần này. Ảnh máy tập cá nhân và dữ liệu InBody không được chia sẻ.</span>
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <button type="button" onclick="publishCurrentWorkoutWeek()"
+                class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-extrabold">🌐 Công khai lên Firebase</button>
+              <button type="button" onclick="showPublicWorkoutView('list')"
+                class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold">Hủy</button>
+            </div>
+            <p class="text-[10px] text-slate-500">Công khai lại cùng một tuần sẽ cập nhật bản chia sẻ hiện có của bạn, không tạo thêm bản trùng lặp.</p>
+          </div>
+        </section>
+
+        <section id="public-workouts-detail-view" class="hidden space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="min-w-0">
+              <button type="button" onclick="showPublicWorkoutView('list')" class="text-xs font-bold text-cyan-300 hover:text-cyan-200 mb-2">← Quay lại danh sách</button>
+              <h4 id="public-detail-title" class="text-base font-extrabold text-white">Chi tiết lịch tập</h4>
+              <p id="public-detail-meta" class="text-xs text-slate-400 mt-1"></p>
+              <p id="public-detail-description" class="text-xs text-slate-300 mt-2"></p>
+            </div>
+            <button type="button" onclick="applyPublicWorkoutAsNewWeek()"
+              class="px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold shrink-0">＋ Áp dụng nguyên tuần thành tuần mới</button>
+          </div>
+          <div class="rounded-xl bg-violet-500/10 border border-violet-500/25 px-3 py-2.5 text-[11px] text-violet-100">
+            Để thay một buổi riêng lẻ, chọn nút áp dụng ở ngày tương ứng. Buổi đó sẽ thay thế nội dung ngày đang chọn trong lịch cá nhân của bạn.
+          </div>
+          <div id="public-workout-detail-days" class="space-y-3"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPT LOGIC & FIREBASE SYNC ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const USER_STATIC_FIREBASE_CONFIG = {
       apiKey: "AIzaSyBycsfzloMx74AjIXf1l5AcrURR_muRdEw",
@@ -1728,6 +1828,363 @@
         return na - nb;
       });
     }
+
+
+    // ==================== THƯ VIỆN LỊCH TẬP CỘNG ĐỒNG (FIREBASE) ====================
+    let publicWorkoutItems = [];
+    let activePublicWorkout = null;
+
+    function getPublicWorkoutCollectionRef() {
+      return collection(firebaseDb, 'artifacts', appId, 'public', 'data', 'sharedWorkoutWeeks');
+    }
+
+    function showPublicWorkoutView(view) {
+      ['list', 'publish', 'detail'].forEach((name) => {
+        const el = document.getElementById(`public-workouts-${name}-view`);
+        if (el) el.classList.toggle('hidden', name !== view);
+      });
+    }
+
+    function formatPublicDate(value) {
+      if (!value) return 'Không rõ';
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? 'Không rõ' : parsed.toLocaleDateString('vi-VN');
+    }
+
+    function getPublicWorkoutCounts(week) {
+      const days = week && week.days ? week.days : {};
+      const values = Object.values(days);
+      return {
+        dayCount: values.filter(day => day && !day.isRest && (day.exercises || []).length > 0).length,
+        exerciseCount: values.reduce((sum, day) => sum + ((day && Array.isArray(day.exercises)) ? day.exercises.length : 0), 0)
+      };
+    }
+
+    function openPublicWorkoutsModal() {
+      document.getElementById('public-workouts-modal').classList.remove('hidden');
+      document.getElementById('public-workouts-search').value = '';
+      activePublicWorkout = null;
+      showPublicWorkoutView('list');
+      loadPublicWorkoutList();
+    }
+
+    function openPublishWeekModal() {
+      if (!appState.data || !appState.data.weeks || !appState.data.weeks[appState.activeWeekId]) {
+        showToast('Không tìm thấy tuần tập đang chọn.', 'error');
+        return;
+      }
+      openPublicWorkoutsModal();
+      const week = appState.data.weeks[appState.activeWeekId];
+      document.getElementById('public-publish-week-label').textContent = `Tuần ${appState.activeWeekId} • ${getPublicWorkoutCounts(week).exerciseCount} bài tập`;
+      document.getElementById('public-week-title').value = `${appState.activeWeekId} – Lịch tập của ${appState.currentUser.displayName || appState.currentUser.username}`.slice(0, 80);
+      document.getElementById('public-week-description').value = '';
+      document.getElementById('public-week-consent').checked = false;
+      showPublicWorkoutView('publish');
+    }
+
+    function closePublicWorkoutsModal() {
+      document.getElementById('public-workouts-modal').classList.add('hidden');
+      activePublicWorkout = null;
+    }
+
+    async function loadPublicWorkoutList() {
+      const container = document.getElementById('public-workouts-list');
+      if (!container) return;
+      if (!firebaseReady || !firebaseDb || !firebaseAuth || !firebaseAuth.currentUser) {
+        container.innerHTML = '<div class="p-7 text-center text-xs text-amber-300">Không thể truy cập Firebase. Hãy kiểm tra kết nối Cloud và đăng nhập lại.</div>';
+        return;
+      }
+
+      container.innerHTML = '<div class="p-7 text-center text-xs text-slate-400">Đang tải danh sách lịch tập...</div>';
+      try {
+        const snapshot = await getDocs(getPublicWorkoutCollectionRef());
+        publicWorkoutItems = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .filter(item => item && item.days && typeof item.days === 'object')
+          .sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
+        renderPublicWorkoutList(document.getElementById('public-workouts-search').value || '');
+      } catch (err) {
+        console.error('Load public workout list error:', err);
+        container.innerHTML = `<div class="p-7 text-center text-xs text-rose-300">Không tải được danh sách. Firebase có thể chưa cấp quyền đọc cho <strong>sharedWorkoutWeeks</strong>.<br><span class="text-slate-500">${escapeHTML(err.message || 'Lỗi kết nối')}</span></div>`;
+      }
+    }
+
+    function renderPublicWorkoutList(searchText = '') {
+      const container = document.getElementById('public-workouts-list');
+      if (!container) return;
+      const q = normalizeTextForMatch(searchText);
+      const filtered = publicWorkoutItems.filter(item => {
+        const counts = getPublicWorkoutCounts(item);
+        const haystack = normalizeTextForMatch([
+          item.title, item.description, item.authorName, item.weekId,
+          ...Object.values(item.days || {}).flatMap(day => [day.title, ...(day.exercises || []).map(ex => `${ex.name || ''} ${ex.equipment || ''}`)])
+        ].join(' '));
+        return !q || haystack.includes(q);
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="p-8 text-center"><div class="text-3xl mb-2">📭</div><div class="text-sm font-bold text-slate-300">${publicWorkoutItems.length ? 'Không tìm thấy lịch phù hợp' : 'Chưa có lịch tập nào được công khai'}</div><p class="text-xs text-slate-500 mt-1">${publicWorkoutItems.length ? 'Thử từ khóa khác.' : 'Bạn có thể là người đầu tiên chia sẻ lịch tập cộng đồng.'}</p></div>`;
+        return;
+      }
+
+      const currentUid = firebaseAuth?.currentUser?.uid || '';
+      const currentUsername = appState.currentUser?.username || '';
+      container.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[720px] text-left text-xs">
+            <thead class="bg-slate-900 text-[10px] uppercase tracking-wider text-slate-400">
+              <tr>
+                <th class="px-4 py-3">Tên lịch / Người chia sẻ</th>
+                <th class="px-3 py-3">Nội dung</th>
+                <th class="px-3 py-3">Ngày công khai</th>
+                <th class="px-4 py-3 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80">
+              ${filtered.map(item => {
+                const counts = getPublicWorkoutCounts(item);
+                const safeId = String(item.id || '').replace(/[^a-zA-Z0-9_-]/g, '');
+                const isOwner = !!currentUid && item.ownerUid === currentUid && item.ownerUsername === currentUsername;
+                return `
+                  <tr class="hover:bg-slate-900/70 align-top">
+                    <td class="px-4 py-3.5 max-w-[300px]">
+                      <div class="font-extrabold text-white text-sm">${escapeHTML(item.title || 'Lịch tập không tên')}</div>
+                      <div class="text-[11px] text-cyan-300 mt-1">${escapeHTML(item.authorName || 'Người dùng FitSync')}</div>
+                      <div class="text-[10px] text-slate-500 mt-0.5">${escapeHTML(item.weekId || 'Tuần')}</div>
+                      ${item.description ? `<p class="text-[11px] text-slate-400 mt-2 leading-relaxed">${escapeHTML(item.description)}</p>` : ''}
+                    </td>
+                    <td class="px-3 py-3.5 text-slate-300 whitespace-nowrap">
+                      <div><strong class="text-white">${counts.dayCount}</strong> ngày có bài tập</div>
+                      <div class="text-slate-500 mt-1"><strong class="text-cyan-300">${counts.exerciseCount}</strong> bài tập</div>
+                    </td>
+                    <td class="px-3 py-3.5 text-slate-400 whitespace-nowrap">${formatPublicDate(item.publishedAt)}</td>
+                    <td class="px-4 py-3.5">
+                      <div class="flex flex-col items-end gap-1.5">
+                        <button type="button" onclick="openPublicWorkoutDetail('${safeId}')" class="px-3 py-2 rounded-lg bg-violet-500/15 hover:bg-violet-500/25 text-violet-300 border border-violet-500/25 font-bold whitespace-nowrap">Xem / Áp dụng</button>
+                        ${isOwner ? `<button type="button" onclick="removePublishedWorkout('${safeId}')" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 font-bold">Gỡ công khai</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function filterPublicWorkoutList(value) {
+      renderPublicWorkoutList(value);
+    }
+
+    function openPublicWorkoutDetail(shareId) {
+      const item = publicWorkoutItems.find(entry => entry.id === shareId);
+      if (!item) {
+        showToast('Không tìm thấy lịch tập được chia sẻ.', 'error');
+        return;
+      }
+      activePublicWorkout = item;
+      document.getElementById('public-detail-title').textContent = item.title || 'Lịch tập cộng đồng';
+      document.getElementById('public-detail-meta').textContent = `${item.authorName || 'Người dùng FitSync'} • ${item.weekId || 'Tuần'} • Công khai ${formatPublicDate(item.publishedAt)}`;
+      document.getElementById('public-detail-description').textContent = item.description || '';
+      const details = document.getElementById('public-workout-detail-days');
+      details.innerHTML = DAYS_OF_WEEK.map(dayMeta => {
+        const day = item.days?.[dayMeta.key] || { isRest: false, title: dayMeta.label, exercises: [] };
+        const exercises = Array.isArray(day.exercises) ? day.exercises : [];
+        const rows = exercises.map((ex, idx) => {
+          let weightText = ex.unit === 'bw' ? 'BW' : ex.unit === 'band' ? `Dây ${ex.bandColor || ''}` : `${ex.weight ?? 0} ${String(ex.unit || 'kg').toUpperCase()}`;
+          const reps = Array.isArray(ex.repsList) && ex.repsList.length ? ex.repsList.join(' / ') : '—';
+          return `<tr class="border-t border-slate-800/80">
+            <td class="px-3 py-2.5 text-slate-500">${idx + 1}</td>
+            <td class="px-3 py-2.5"><div class="font-bold text-white">${escapeHTML(ex.name || 'Bài tập')}</div><div class="text-[10px] text-slate-400 mt-0.5">${escapeHTML(ex.equipment || '')}</div>${ex.notes ? `<div class="text-[10px] text-amber-200/80 mt-1.5 leading-relaxed">${escapeHTML(ex.notes)}</div>` : ''}</td>
+            <td class="px-3 py-2.5 text-cyan-300 whitespace-nowrap">${escapeHTML(weightText)}</td>
+            <td class="px-3 py-2.5 text-slate-300 whitespace-nowrap">${Number(ex.sets) || 1} × ${escapeHTML(reps)}</td>
+          </tr>`;
+        }).join('');
+        return `<article class="rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 bg-slate-900/80">
+            <div><div class="text-[10px] font-bold uppercase tracking-wider text-cyan-300">${dayMeta.label}</div><div class="text-sm font-extrabold text-white mt-0.5">${escapeHTML(day.title || dayMeta.label)} ${day.isRest ? '<span class="text-amber-300 text-xs">• Ngày nghỉ</span>' : ''}</div></div>
+            <button type="button" onclick="applyPublicWorkoutDay('${dayMeta.key}')" class="px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/25 text-cyan-200 text-[11px] font-extrabold">Dùng buổi này cho ${escapeHTML(DAYS_OF_WEEK.find(d => d.key === appState.selectedDay)?.label || 'ngày đang chọn')}</button>
+          </div>
+          ${exercises.length ? `<div class="overflow-x-auto"><table class="w-full min-w-[560px] text-left text-xs"><thead class="text-[10px] uppercase text-slate-500"><tr><th class="px-3 py-2">#</th><th class="px-3 py-2">Bài tập / Ghi chú</th><th class="px-3 py-2">Mức tạ</th><th class="px-3 py-2">Sets × Reps</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="px-4 py-4 text-xs text-slate-500">${day.isRest ? 'Ngày nghỉ phục hồi.' : 'Chưa có bài tập trong ngày này.'}</div>`}
+        </article>`;
+      }).join('');
+      showPublicWorkoutView('detail');
+    }
+
+    function makeImportedDay(sourceDay, newWeekId, dayKey) {
+      const copied = JSON.parse(JSON.stringify(sourceDay || { isRest: false, title: '', exercises: [] }));
+      copied.isRest = !!copied.isRest;
+      copied.title = String(copied.title || 'Buổi tập').slice(0, 100);
+      copied.exercises = (Array.isArray(copied.exercises) ? copied.exercises : []).map((ex, idx) => {
+        const clean = { ...ex, id: `ex-${newWeekId}-${dayKey}-${Date.now()}-${idx}`, completed: false };
+        delete clean.customPhoto;
+        return clean;
+      });
+      return copied;
+    }
+
+    function applyPublicWorkoutDay(sourceDayKey) {
+      if (!activePublicWorkout || !appState.data?.weeks?.[appState.activeWeekId]) return;
+      const sourceDay = activePublicWorkout.days?.[sourceDayKey];
+      if (!sourceDay) {
+        showToast('Lịch chia sẻ không có dữ liệu cho ngày này.', 'error');
+        return;
+      }
+      const targetMeta = DAYS_OF_WEEK.find(day => day.key === appState.selectedDay) || DAYS_OF_WEEK[0];
+      const targetDay = appState.data.weeks[appState.activeWeekId].days?.[appState.selectedDay];
+      const oldCount = targetDay?.exercises?.length || 0;
+      const newCount = sourceDay.exercises?.length || 0;
+      if (!confirm(`Thay thế nội dung ${targetMeta.label} trong ${appState.activeWeekId} bằng buổi tập "${sourceDay.title || 'Không tên'}" (${newCount} bài tập)?${oldCount ? `\n\nNgày hiện tại có ${oldCount} bài tập và sẽ bị thay thế.` : ''}`)) return;
+
+      const imported = makeImportedDay(sourceDay, appState.activeWeekId, appState.selectedDay);
+      appState.data.weeks[appState.activeWeekId].days[appState.selectedDay] = imported;
+      renderWorkoutSection();
+      persistUserData();
+      closePublicWorkoutsModal();
+      showToast(`Đã áp dụng buổi tập vào ${targetMeta.label} của ${appState.activeWeekId}.`, 'success');
+    }
+
+    function applyPublicWorkoutAsNewWeek() {
+      if (!activePublicWorkout || !appState.data?.weeks) return;
+      const weekIds = getSortedWeekIds();
+      const maxNum = weekIds.reduce((max, id) => Math.max(max, parseInt(id.replace(/\D/g, ''), 10) || 1), 1);
+      const newWeekId = `W${maxNum + 1}`;
+      const newDays = {};
+      DAYS_OF_WEEK.forEach(dayMeta => {
+        newDays[dayMeta.key] = makeImportedDay(
+          activePublicWorkout.days?.[dayMeta.key] || { isRest: false, title: `Buổi tập ${dayMeta.label}`, exercises: [] },
+          newWeekId,
+          dayMeta.key
+        );
+      });
+      appState.data.weeks[newWeekId] = {
+        id: newWeekId,
+        label: newWeekId,
+        createdAt: new Date().toISOString(),
+        days: newDays
+      };
+      appState.activeWeekId = newWeekId;
+      appState.selectedDay = 'mon';
+      renderWorkoutSection();
+      persistUserData();
+      closePublicWorkoutsModal();
+      showToast(`Đã thêm nguyên lịch cộng đồng thành ${newWeekId}.`, 'success');
+    }
+
+    async function publishCurrentWorkoutWeek() {
+      if (!firebaseReady || !firebaseDb || !firebaseAuth?.currentUser) {
+        showToast('Cần kết nối Firebase để công khai lịch tập.', 'error');
+        return;
+      }
+      const week = appState.data?.weeks?.[appState.activeWeekId];
+      if (!week) {
+        showToast('Không tìm thấy tuần tập đang chọn.', 'error');
+        return;
+      }
+      const title = document.getElementById('public-week-title').value.trim();
+      const description = document.getElementById('public-week-description').value.trim();
+      if (!title) {
+        showToast('Vui lòng nhập tên lịch tập.', 'error');
+        document.getElementById('public-week-title').focus();
+        return;
+      }
+      if (!document.getElementById('public-week-consent').checked) {
+        showToast('Vui lòng xác nhận nội dung sẽ được công khai.', 'error');
+        return;
+      }
+
+      const days = {};
+      DAYS_OF_WEEK.forEach(dayMeta => {
+        const sourceDay = week.days?.[dayMeta.key] || {};
+        days[dayMeta.key] = {
+          isRest: !!sourceDay.isRest,
+          title: String(sourceDay.title || dayMeta.label).slice(0, 100),
+          exercises: (Array.isArray(sourceDay.exercises) ? sourceDay.exercises : []).slice(0, 50).map(ex => ({
+            name: String(ex.name || 'Bài tập').slice(0, 140),
+            equipment: String(ex.equipment || '').slice(0, 180),
+            weight: Number.isFinite(Number(ex.weight)) ? Number(ex.weight) : 0,
+            unit: ['kg', 'lb', 'bw', 'band'].includes(ex.unit) ? ex.unit : 'kg',
+            bandColor: ex.bandColor ? String(ex.bandColor).slice(0, 30) : null,
+            bandCount: Number(ex.bandCount) || null,
+            sets: Math.min(30, Math.max(1, Number.parseInt(ex.sets, 10) || 1)),
+            repsList: (Array.isArray(ex.repsList) ? ex.repsList : []).slice(0, 30).map(rep => String(rep).slice(0, 12)),
+            notes: String(ex.notes || '').slice(0, 1000)
+          }))
+        };
+      });
+
+      const currentUser = appState.currentUser;
+      const cleanUsername = String(currentUser.username || 'user').toLowerCase().replace(/[^a-z0-9_-]/g, '_').slice(0, 40);
+      const shareId = `shared_${firebaseAuth.currentUser.uid}_${cleanUsername}_${appState.activeWeekId}`;
+      const counts = getPublicWorkoutCounts({ days });
+      const payload = {
+        schemaVersion: 1,
+        title: title.slice(0, 80),
+        description: description.slice(0, 350),
+        weekId: appState.activeWeekId,
+        authorName: String(currentUser.displayName || currentUser.username).slice(0, 80),
+        ownerUsername: currentUser.username,
+        ownerUid: firebaseAuth.currentUser.uid,
+        days,
+        dayCount: counts.dayCount,
+        exerciseCount: counts.exerciseCount,
+        publishedAt: new Date().toISOString()
+      };
+
+      const publishButton = document.querySelector('#public-workouts-publish-view button[onclick="publishCurrentWorkoutWeek()"]');
+      if (publishButton) {
+        publishButton.disabled = true;
+        publishButton.textContent = 'Đang lưu lên Firebase...';
+      }
+      try {
+        await setDoc(doc(getPublicWorkoutCollectionRef(), shareId), payload);
+        showToast(`Đã công khai ${appState.activeWeekId} lên thư viện cộng đồng.`, 'success');
+        await loadPublicWorkoutList();
+        showPublicWorkoutView('list');
+      } catch (err) {
+        console.error('Publish workout error:', err);
+        showToast(`Không thể công khai lịch. Kiểm tra quyền Firestore: ${err.message || 'Lỗi không xác định'}`, 'error');
+      } finally {
+        if (publishButton) {
+          publishButton.disabled = false;
+          publishButton.textContent = '🌐 Công khai lên Firebase';
+        }
+      }
+    }
+
+    async function removePublishedWorkout(shareId) {
+      const item = publicWorkoutItems.find(entry => entry.id === shareId);
+      const currentUid = firebaseAuth?.currentUser?.uid || '';
+      if (!item || item.ownerUid !== currentUid || item.ownerUsername !== appState.currentUser?.username) {
+        showToast('Bạn chỉ có thể gỡ lịch do chính tài khoản này công khai.', 'error');
+        return;
+      }
+      if (!confirm(`Gỡ công khai lịch "${item.title || item.weekId}"? Lịch tập gốc trong tài khoản của bạn sẽ không bị xóa.`)) return;
+      try {
+        await deleteDoc(doc(getPublicWorkoutCollectionRef(), shareId));
+        publicWorkoutItems = publicWorkoutItems.filter(entry => entry.id !== shareId);
+        renderPublicWorkoutList(document.getElementById('public-workouts-search').value || '');
+        showToast('Đã gỡ lịch khỏi thư viện cộng đồng.', 'success');
+      } catch (err) {
+        console.error('Remove public workout error:', err);
+        showToast(`Không thể gỡ lịch: ${err.message || 'Lỗi Firebase'}`, 'error');
+      }
+    }
+
+
+    // Các hàm được gọi từ thuộc tính onclick trong HTML cần được đưa ra window.
+    Object.assign(window, {
+      openPublicWorkoutsModal,
+      openPublishWeekModal,
+      closePublicWorkoutsModal,
+      loadPublicWorkoutList,
+      filterPublicWorkoutList,
+      showPublicWorkoutView,
+      publishCurrentWorkoutWeek,
+      openPublicWorkoutDetail,
+      applyPublicWorkoutDay,
+      applyPublicWorkoutAsNewWeek,
+      removePublishedWorkout
+    });
 
     // ==================== KẾT NỐI FIREBASE & XÁC THỰC ====================
     function updateSyncUI(status, text) {
