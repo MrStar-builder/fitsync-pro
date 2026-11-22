@@ -222,7 +222,7 @@
             <button type="button" onclick="cloneWeekFromW1()"
               class="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold transition flex items-center gap-1.5">
               <span>🧬</span>
-              <span>Tạo tuần mới từ W1</span>
+              <span>Tạo tuần mới từ tuần trước</span>
             </button>
             <button type="button" id="delete-week-btn" onclick="deleteCurrentWeek()"
               class="hidden px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold transition">
@@ -2856,8 +2856,15 @@
       const weekIds = getSortedWeekIds();
       const maxNum = weekIds.reduce((m, id) => Math.max(m, parseInt(id.replace(/\D/g, ''), 10) || 1), 1);
       const newWeekId = 'W' + (maxNum + 1);
-      const baseW1 = appState.data.weeks['W1'];
-      const clonedDays = JSON.parse(JSON.stringify(baseW1.days));
+      const previousWeekId = 'W' + maxNum;
+      const previousWeek = appState.data.weeks[previousWeekId];
+
+      if (!previousWeek || !previousWeek.days) {
+        showToast(`Không tìm thấy dữ liệu ${previousWeekId} để sao chép.`, 'error');
+        return;
+      }
+
+      const clonedDays = JSON.parse(JSON.stringify(previousWeek.days));
 
       Object.keys(clonedDays).forEach((dKey) => {
         (clonedDays[dKey].exercises || []).forEach((ex, idx) => {
@@ -2875,7 +2882,7 @@
       appState.activeWeekId = newWeekId;
       renderWorkoutSection();
       persistUserData();
-      showToast(`Đã tạo ${newWeekId} sao chép từ tuần gốc W1!`, 'success');
+      showToast(`Đã tạo ${newWeekId} sao chép từ ${previousWeekId}!`, 'success');
     };
 
     window.deleteCurrentWeek = function() {
