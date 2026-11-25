@@ -229,6 +229,11 @@
               <span>📤</span>
               <span>Công khai tuần</span>
             </button>
+            <button type="button" id="btn-week-deload" onclick="toggleWeekDeload()"
+              class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-extrabold transition flex items-center gap-1.5">
+              <span>↘</span>
+              <span>Deload tuần</span>
+            </button>
             <button type="button" onclick="cloneWeekFromW1()"
               class="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold transition flex items-center gap-1.5">
               <span>🧬</span>
@@ -271,7 +276,21 @@
             </div>
 
             <!-- Thanh tiến độ, Tổng Volume buổi tập & Nút Thêm bài tập -->
-            <div id="workout-day-actions" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
+            <div id="workout-day-actions" class="flex flex-col gap-3">
+              <div id="workout-mode-controls" class="flex flex-wrap items-center gap-2">
+                <button type="button" id="btn-day-deload" onclick="toggleDayDeload()"
+                  class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-extrabold transition">
+                  ↘ Deload ngày
+                </button>
+                <button type="button" id="btn-rush-in" onclick="toggleRushIn()"
+                  class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-extrabold transition">
+                  ⚡ Rush-In
+                </button>
+                <span id="workout-mode-hint" class="text-[11px] leading-relaxed text-slate-400 flex-1 min-w-[180px]">
+                  Chế độ thường: thực hiện theo khối lượng đã thiết lập.
+                </span>
+              </div>
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-wrap">
               <div class="grid grid-cols-2 sm:flex items-stretch gap-2.5">
                 <div class="bg-slate-950/90 border border-slate-800 rounded-2xl px-3.5 py-2.5 min-w-[165px]">
                   <div class="flex items-center justify-between text-[11px] mb-1.5 gap-2">
@@ -306,6 +325,7 @@
                   </svg>
                   <span>Thêm bài tập</span>
                 </button>
+              </div>
               </div>
             </div>
           </div>
@@ -633,7 +653,7 @@
           <p id="exercise-modal-subtitle" class="text-xs text-slate-400 mt-0.5">Tuần W1 • Thứ 2</p>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="openLibraryModal(true)"
+          <button type="button" id="exercise-library-open-btn" onclick="openLibraryModal(true)"
             class="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition">
             📚 Chọn từ thư viện
           </button>
@@ -649,6 +669,17 @@
         <input type="hidden" id="ex-id" value="" />
         <input type="hidden" id="ex-matched-key" value="" />
 
+        <!-- Loại hệ bài tập -->
+        <div class="rounded-2xl bg-slate-950 border border-slate-800 p-3.5">
+          <label for="ex-type" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Hệ bài tập</label>
+          <select id="ex-type" onchange="onExerciseTypeChange()"
+            class="w-full px-3.5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:outline-none focus:border-emerald-500">
+            <option value="strength">Sức mạnh / Kháng lực (Sets – Reps)</option>
+            <option value="cardio">Chạy bộ / Đi bộ (Quãng – Interval)</option>
+          </select>
+          <p class="text-[11px] text-slate-500 mt-2">Chọn hệ phù hợp. Bài cardio sử dụng quãng gồm độ dốc, tốc độ và thời gian; không dùng sets, reps hoặc thời gian nghỉ giữa set.</p>
+        </div>
+
         <!-- 1. Tên bài tập -->
         <div>
           <label for="ex-name" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Tên bài tập *</label>
@@ -657,6 +688,7 @@
             class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
         </div>
 
+        <div id="strength-fields" class="space-y-4">
         <!-- 2. Dụng cụ / Máy tập -->
         <div>
           <div class="flex items-center justify-between gap-2 flex-wrap mb-1.5">
@@ -676,36 +708,44 @@
         </div>
 
         <!-- KHUNG NHẬN DIỆN TỰ ĐỘNG & HÌNH MINH HỌA KỸ THUẬT -->
-        <div id="smart-recognition-panel" class="rounded-2xl bg-slate-950/95 border border-cyan-500/35 p-3.5 sm:p-4 space-y-3">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 text-[10px] font-extrabold uppercase tracking-wider">
+        <div id="smart-recognition-panel" class="rounded-2xl bg-slate-950/95 border border-cyan-500/35 p-3.5 sm:p-4 space-y-3 min-w-0">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 min-w-0">
+            <div class="flex flex-wrap items-center gap-2 min-w-0">
+              <span class="px-2 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
                 🎯 Nhận diện tự động
               </span>
-              <span id="recog-title" class="text-xs sm:text-sm font-extrabold text-white">Incline Dumbbell Press</span>
+              <span id="recog-title" class="text-xs sm:text-sm font-extrabold text-white min-w-0">Incline Dumbbell Press</span>
+              <span id="recog-status" class="text-[10px] font-bold text-slate-400 shrink-0">Nhập tên để nhận diện</span>
             </div>
-            <span id="recog-muscles" class="text-[11px] font-semibold text-emerald-400">Ngực trên • Vai trước • Tay sau</span>
+            <span id="recog-muscles" class="text-[11px] font-semibold text-emerald-400 sm:text-right">Ngực trên • Vai trước • Tay sau</span>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-            <div id="recog-svg-box" class="sm:col-span-6 rounded-xl overflow-hidden border border-slate-800 bg-[#080d19]"></div>
-            <div class="sm:col-span-6 space-y-2.5">
-              <div class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 border border-slate-800 rounded-xl p-2.5">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">💡 Hướng dẫn kỹ thuật chuẩn:</div>
-                <p id="recog-tips-text" class="text-slate-200"></p>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start min-w-0">
+            <div id="recog-svg-box" class="w-full min-w-0 sm:col-span-6 rounded-xl overflow-hidden border border-slate-800 bg-[#080d19]"></div>
+            <div class="w-full min-w-0 sm:col-span-6 space-y-2.5">
+              <div class="text-xs text-slate-300 leading-relaxed bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 min-w-0">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">💡 Hướng dẫn kỹ thuật:</div>
+                <p id="recog-tips-text" class="text-slate-200 break-words"></p>
               </div>
               <div class="flex flex-wrap gap-1.5">
                 <button type="button" onclick="applyRecognizedTips()"
-                  class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[11px] font-bold transition">
-                  + Chèn lời khuyên vào lưu ý
+                  class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-[11px] font-bold transition disabled:opacity-35 disabled:cursor-not-allowed">
+                  + Thêm hướng dẫn vào ghi chú
                 </button>
                 <button type="button" onclick="applyRecognizedEquipment()"
-                  class="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-[11px] font-bold transition">
+                  class="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-[11px] font-bold transition disabled:opacity-35 disabled:cursor-not-allowed">
                   Dùng dụng cụ gợi ý
+                </button>
+                <button type="button" id="btn-normalize-exercise-name" onclick="applyRecognizedCanonicalName()"
+                  class="hidden px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition">
+                  Chuẩn hóa tên bài
                 </button>
               </div>
             </div>
           </div>
+
+          <!-- Khu vực xác nhận gợi ý nằm ngoài grid hình minh họa để không bị ép cột / chồng nội dung -->
+          <div id="recog-suggestions" class="hidden w-full min-w-0 border-t border-slate-800 pt-3 space-y-2" aria-live="polite"></div>
         </div>
 
         <!-- 2.5. Chụp ảnh hoặc tải ảnh dụng cụ / máy tập thực tế trong phòng gym -->
@@ -852,6 +892,37 @@
           <div id="modal-prev-week-detail" class="text-xs text-slate-300">
             <!-- Render đối chiếu trực tiếp bằng JS -->
           </div>
+        </div>
+
+        </div>
+
+        <!-- Hệ bài tập cardio: mỗi quãng gồm độ dốc, tốc độ và thời gian -->
+        <div id="cardio-fields" class="hidden rounded-2xl bg-slate-950/95 border border-cyan-500/30 p-3.5 sm:p-4 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+            <div>
+              <div class="text-sm font-extrabold text-white">Chạy bộ / Đi bộ theo quãng</div>
+              <p class="text-[11px] text-slate-400 mt-1">Mỗi quãng là một interval độc lập. Nhập độ dốc (%), tốc độ (km/h) và thời gian (phút).</p>
+            </div>
+            <span id="cardio-total-preview" class="shrink-0 rounded-xl bg-cyan-500/10 border border-cyan-500/25 px-3 py-2 text-xs font-extrabold text-cyan-200">1 quãng • 05:00</span>
+          </div>
+          <div>
+            <label for="ex-cardio-equipment" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Thiết bị / Địa điểm</label>
+            <input id="ex-cardio-equipment" type="text" value="Máy chạy bộ" list="cardio-equipment-options"
+              placeholder="Máy chạy bộ, ngoài trời, máy đi bộ..."
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-500" />
+            <datalist id="cardio-equipment-options">
+              <option value="Máy chạy bộ"></option>
+              <option value="Đi bộ ngoài trời"></option>
+              <option value="Chạy bộ ngoài trời"></option>
+              <option value="Máy đi bộ"></option>
+            </datalist>
+          </div>
+          <div id="cardio-intervals-container" class="space-y-2"></div>
+          <button type="button" onclick="addCardioInterval()"
+            class="w-full py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-extrabold transition">
+            + Thêm quãng
+          </button>
+          <p class="text-[10px] text-slate-500 leading-relaxed">Ví dụ: khởi động 5 phút ở 5 km/h, sau đó chạy 3 phút ở 9 km/h, cuối cùng đi bộ thả lỏng 5 phút ở 4 km/h. Có thể thêm hoặc xóa quãng tùy buổi tập.</p>
         </div>
 
         <!-- 5. Lưu ý kỹ thuật -->
@@ -1166,7 +1237,7 @@
         defaultUnit: 'kg',
         muscles: 'Ngực trên • Vai trước • Tay sau',
         svgType: 'incline_db_press',
-        keywords: ['incline dumbbell press', 'day nguc tren ta don', 'nguc tren', 'ghe doc', 'incline press', 'incline db', 'nac 3'],
+        keywords: ['incline dumbbell press', 'incline db bench press', 'db incline press', 'day nguc tren ta don', 'day nguc doc ta don', 'nguc tren', 'ghe doc', 'incline press', 'incline db', 'nac 3'],
         tips: 'Chỉnh ghế dốc 30°–45° (nấc 3), ép chặt bả vai xuống đệm, khép khuỷu tay 45° so với thân và hạ tạ chậm 3 giây.'
       },
       {
@@ -1178,7 +1249,7 @@
         defaultUnit: 'kg',
         muscles: 'Ngực giữa • Vai trước • Tay sau',
         svgType: 'flat_db_press',
-        keywords: ['flat dumbbell', 'day nguc ngang', 'nguc phang', 'bench press ta don', 'flat db press'],
+        keywords: ['flat dumbbell', 'flat dumbbell bench press', 'dumbbell bench press', 'db bench press', 'day nguc ngang', 'nguc phang', 'bench press ta don', 'flat db press'],
         tips: 'Giữ bàn chân bám chắc sàn, ưỡn nhẹ ngực tự nhiên, hạ tạ ngang đường chân ngực và đẩy lên không để hai quả tạ va mạnh vào nhau.'
       },
       {
@@ -1250,7 +1321,7 @@
         defaultUnit: 'kg',
         muscles: 'Cơ xô (Lats) • Lưng giữa',
         svgType: 'db_one_arm_row',
-        keywords: ['one arm row', 'cheo ta don', 'dumbbell row', 'keo ta don 1 tay', 'lung xo ta don'],
+        keywords: ['one arm row', 'single arm dumbbell row', 'cheo ta don', 'dumbbell row', 'keo ta don 1 tay', 'lung xo ta don'],
         tips: 'Giữ lưng thẳng song song mặt sàn, kéo quả tạ theo đường vòng cung về phía hông (túi quần) thay vì kéo thẳng lên ngực.'
       },
       {
@@ -1347,8 +1418,8 @@
         defaultEquipment: 'Máy kéo xô 2 tay đòn đơn',
         defaultUnit: 'lb',
         muscles: 'Cơ xô rộng (Latissimus Dorsi)',
-        svgType: 'lat_pulldown',
-        keywords: ['diverging lat pulldown', 'may keo xo 2 tay don don', 'diverging', 'xo 2 tay'],
+        svgType: 'diverging_lat_pulldown',
+        keywords: ['diverging lat pulldown', 'iso lateral lat pulldown', 'independent arm lat pulldown', 'may keo xo 2 tay don don', 'keo xo tay don doc lap', 'diverging', 'xo 2 tay'],
         tips: 'Khóa chặt đùi dưới đệm, hơi ngả ngực 10°–15°, hạ vai xuống trước rồi kéo 2 tay đòn độc lập hướng thẳng xuống hông.'
       },
       {
@@ -1360,7 +1431,7 @@
         defaultUnit: 'lb',
         muscles: 'Cơ xô (Latissimus Dorsi) • Lưng trên',
         svgType: 'lat_pulldown',
-        keywords: ['lat pulldown', 'may cap 2 trong 1', 'keo xo'],
+        keywords: ['lat pulldown', 'lat pull down', 'cable lat pulldown', 'wide grip lat pulldown', 'may cap 2 trong 1', 'keo xo cap'],
         tips: 'Nắm thanh kéo rộng hơn vai, giữ ngực mở, kéo thanh đòn xuống ngang xương đòn và kiểm soát nhịp nhả tạ lên.'
       },
       {
@@ -1396,7 +1467,7 @@
         defaultUnit: 'lb',
         muscles: 'Lưng giữa • Cơ xô • Cầu vai',
         svgType: 'seated_cable_row',
-        keywords: ['seated cable row', 'may row low', 'row low', 'ngoi keo cap', 'cheo lung cap'],
+        keywords: ['seated cable row', 'cable row', 'low cable row', 'may row low', 'row low', 'ngoi keo cap', 'cheo lung cap'],
         tips: 'Giữ cột sống thẳng đứng, kéo tay cầm về vùng bụng dưới, ép chặt hai xương bả vai và không ngả người quá sâu ra sau.'
       },
       {
@@ -1504,7 +1575,7 @@
         defaultUnit: 'kg',
         muscles: 'Đùi trước • Mông • Đùi sau',
         svgType: 'leg_press',
-        keywords: ['45 leg press', 'dap dui', 'may dap chan'],
+        keywords: ['45 leg press', '45 degree leg press', 'leg press machine', 'dap dui', 'may dap chan'],
         tips: 'Đặt bàn chân rộng bằng vai giữa bàn đạp, hạ sâu đến khi đùi chạm sát thân nhưng mông không nhấc khỏi ghế, không khóa cứng gối khi đẩy.'
       },
       {
@@ -1516,20 +1587,8 @@
         defaultUnit: 'lb',
         muscles: 'Cơ đùi trước (Quadriceps)',
         svgType: 'leg_extension',
-        keywords: ['leg extension machine', 'may leg extension', 'da dui truoc'],
+        keywords: ['leg extension', 'leg extensions', 'machine leg extension', 'may leg extension', 'da dui truoc', 'da dui tren may'],
         tips: 'Chỉnh trục xoay máy trùng khớp với khớp gối, nắm chặt tay cầm hai bên ghế để giữ hông cố định và giữ 1 giây ở đỉnh.'
-      },
-      {
-        key: 'leg_extension',
-        category: 'machine',
-        name: 'Leg Extension',
-        viName: 'Đá đùi trước (Leg Extension)',
-        defaultEquipment: 'Máy Leg Extension',
-        defaultUnit: 'lb',
-        muscles: 'Cơ đùi trước (Quadriceps)',
-        svgType: 'leg_extension',
-        keywords: ['leg extension', 'da dui'],
-        tips: 'Ngồi tựa sát lưng vào đệm, duỗi thẳng đầu gối nâng đệm cổ chân lên hết biên độ và hạ chậm 3 giây.'
       },
       {
         key: 'leg_curl',
@@ -1540,20 +1599,8 @@
         defaultUnit: 'lb',
         muscles: 'Cơ đùi sau (Hamstrings)',
         svgType: 'leg_curl',
-        keywords: ['leg curl', 'prone leg curl', 'moc dui sau', 'gap dui sau'],
+        keywords: ['leg curl', 'leg curl machine', 'prone leg curl', 'lying leg curl', 'moc dui sau', 'gap dui sau'],
         tips: 'Nằm sấp áp chặt hông xuống đệm ghế, gập cổ chân hướng mũi chân về ống đồng và kéo gót chân về sát mông.'
-      },
-      {
-        key: 'kneeling_cable_crunch_lay_cu',
-        category: 'machine',
-        name: 'Kneeling Cable Crunch (Động tác lạy cụ)',
-        viName: 'Quỳ gập bụng dây cáp cao',
-        defaultEquipment: 'Trạm cáp đa năng, ròng rọc cao + dây thừng',
-        defaultUnit: 'lb',
-        muscles: 'Cơ bụng thẳng (Rectus Abdominis)',
-        svgType: 'kneeling_cable_crunch',
-        keywords: ['kneeling cable crunch (dong tac lay cu)', 'dong tac lay cu', 'lay cu', 'tram cap da nang'],
-        tips: 'Quỳ gối trước ròng rọc cao, giữ cố định dây thừng hai bên thái dương, cuộn tròn cột sống gập xương sườn hướng về xương chậu.'
       },
       {
         key: 'kneeling_cable_crunch',
@@ -1564,7 +1611,7 @@
         defaultUnit: 'lb',
         muscles: 'Cơ bụng thẳng (Rectus Abdominis)',
         svgType: 'kneeling_cable_crunch',
-        keywords: ['kneeling cable crunch', 'cable crunch', 'gap bung cap'],
+        keywords: ['kneeling cable crunch', 'cable crunch', 'gap bung cap', 'dong tac lay cu', 'lay cu', 'quy gap bung cap day thung'],
         tips: 'Giữ cố định hông và đùi vuông góc sàn, chỉ dùng cơ bụng cuộn người gập xuống và thở ra mạnh ở điểm thấp nhất.'
       },
       {
@@ -1694,16 +1741,28 @@
 
       // ==================== 5. DÂY KHÁNG LỰC (RESISTANCE BANDS) ====================
       {
-        key: 'band_face_pull',
+        key: 'band_pull_apart',
         category: 'band',
-        name: 'Resistance Band Pull-Apart / Face Pull',
-        viName: 'Kéo dây kháng lực tập vai sau',
+        name: 'Resistance Band Pull-Apart',
+        viName: 'Dang dây kháng lực tập vai sau',
         defaultEquipment: 'Dây kháng lực Đen (25–65 lb)',
         defaultUnit: 'band',
-        muscles: 'Vai sau • Lưng trên • Khớp vai',
+        muscles: 'Vai sau • Lưng trên • Cơ ổn định bả vai',
+        svgType: 'band_pull_apart',
+        keywords: ['band pull apart', 'resistance band pull apart', 'tach day khang luc', 'dang day vai sau', 'keo day sang ngang'],
+        tips: 'Giữ hai tay ngang trước ngực, khuỷu tay hơi mềm; kéo dây tách sang hai bên bằng cách khép bả vai, không ưỡn lưng hoặc nhún vai.'
+      },
+      {
+        key: 'band_face_pull',
+        category: 'band',
+        name: 'Resistance Band Face Pull',
+        viName: 'Kéo dây kháng lực về phía mặt',
+        defaultEquipment: 'Dây kháng lực Đen (25–65 lb) + điểm neo ngang mặt',
+        defaultUnit: 'band',
+        muscles: 'Vai sau • Cầu vai giữa • Cơ xoay vai',
         svgType: 'band_face_pull',
-        keywords: ['band pull apart', 'band face pull', 'day khang luc', 'keo day', 'tach day'],
-        tips: 'Giữ hai tay thẳng ngang vai, kéo giãn dây kháng lực sang hai bên đến khi dây chạm ngang ngực và ép chặt bả vai.'
+        keywords: ['band face pull', 'resistance band face pull', 'keo day ve mat', 'face pull day khang luc'],
+        tips: 'Neo dây ngang tầm mặt, kéo hai tay về hai bên thái dương, khuỷu tay mở cao và xoay ngoài vai có kiểm soát.'
       },
       {
         key: 'band_row',
@@ -1730,16 +1789,28 @@
         tips: 'Vòng dây qua lưng dưới nách, bước 1 chân lên trước giữ thăng bằng và đẩy thẳng hai tay hội tụ trước ngực.'
       },
       {
-        key: 'band_arms',
+        key: 'band_biceps_curl',
         category: 'band',
-        name: 'Resistance Band Bicep Curl / Tricep Pushdown',
-        viName: 'Tập tay trước / tay sau với dây kháng lực',
+        name: 'Resistance Band Biceps Curl',
+        viName: 'Cuốn tay trước với dây kháng lực',
         defaultEquipment: 'Dây kháng lực Đỏ (15–35 lb)',
         defaultUnit: 'band',
-        muscles: 'Tay trước (Biceps) / Tay sau (Triceps)',
-        svgType: 'band_arms',
-        keywords: ['band curl', 'band tricep', 'tay truoc day khang luc', 'tay sau day khang luc'],
-        tips: 'Giẫm chân cố định dây (cho tay trước) hoặc móc dây lên cao (cho tay sau), cố định khuỷu tay không đung đưa.'
+        muscles: 'Bắp tay trước (Biceps) • Cẳng tay',
+        svgType: 'band_biceps_curl',
+        keywords: ['band biceps curl', 'resistance band curl', 'cuon tay truoc day khang luc', 'cuon tay truoc voi day'],
+        tips: 'Đứng giẫm giữa dây, giữ khuỷu tay sát thân và cuốn cẳng tay lên; hạ dây chậm, không dùng đà thân người.'
+      },
+      {
+        key: 'band_triceps_pushdown',
+        category: 'band',
+        name: 'Resistance Band Triceps Pushdown',
+        viName: 'Duỗi tay sau với dây kháng lực',
+        defaultEquipment: 'Dây kháng lực Đỏ (15–35 lb) + điểm neo cao',
+        defaultUnit: 'band',
+        muscles: 'Cơ tay sau (Triceps)',
+        svgType: 'band_triceps_pushdown',
+        keywords: ['band triceps pushdown', 'resistance band triceps extension', 'duoi tay sau day khang luc', 'keo day tay sau'],
+        tips: 'Neo dây ở điểm cao, khóa khuỷu tay sát sườn và duỗi cẳng tay xuống đến khi tay gần thẳng; trở về chậm, không đưa vai ra trước.'
       },
       {
         key: 'band_assisted_pullup',
@@ -1789,9 +1860,7 @@
       leg_press_calf_raise: 75,
       leg_press: 150,
       leg_extension_machine: 90,
-      leg_extension: 90,
       leg_curl: 90,
-      kneeling_cable_crunch_lay_cu: 60,
       kneeling_cable_crunch: 60,
       leg_raise: 60,
       ez_preacher_curl: 75,
@@ -1803,10 +1872,12 @@
       bw_dips: 120,
       bw_squat: 90,
       bw_plank: 60,
-      band_face_pull: 60,
+      band_pull_apart: 60,
+      band_face_pull: 75,
       band_row: 90,
       band_chest_press: 90,
-      band_arms: 60,
+      band_biceps_curl: 60,
+      band_triceps_pushdown: 60,
       band_assisted_pullup: 120
     };
 
@@ -1819,14 +1890,171 @@
         : `00:${String(remaining).padStart(2, '0')}`;
     }
 
-    function getRecommendedRestSecondsForName(exerciseName) {
-      const query = normalizeTextForMatch(exerciseName);
-      if (!query) return 90;
-      const item = EXERCISE_LIBRARY.find((entry) => {
-        const names = [entry.name, entry.viName, ...(entry.keywords || [])];
-        return names.some((name) => normalizeTextForMatch(name) === query);
-      });
-      return item ? (EXERCISE_REST_PRESETS[item.key] || 90) : 90;
+    // Alias tĩnh giúp nhận diện nhiều cách gọi nhưng không tự gán hình khi độ chắc chắn thấp.
+    // Không lưu các alias này lên Firestore; dữ liệu lịch tập cũ được giữ nguyên.
+    const EXERCISE_SEARCH_ALIASES = {
+      incline_db_press: ['incline dumbbell bench press', 'incline db press', 'db incline press', 'đẩy ngực dốc tạ đơn', 'đẩy ngực trên tạ đôi'],
+      flat_db_press: ['flat db bench press', 'dumbbell bench press', 'db bench press', 'đẩy ngực ngang tạ đôi'],
+      db_fly: ['dumbbell fly', 'dumbbell chest fly', 'db chest fly', 'ép ngực tạ đơn'],
+      db_shoulder_press: ['db shoulder press', 'dumbbell overhead press', 'đẩy vai tạ đơn'],
+      seated_db_lateral_raise: ['seated db lateral raise', 'ngồi raise vai ngang'],
+      db_lateral_raise: ['standing dumbbell lateral raise', 'standing lateral raise', 'đứng bay vai tạ đơn'],
+      db_rear_delt: ['dumbbell rear delt fly', 'chest supported rear delt raise', 'bay vai sau tựa ghế'],
+      db_one_arm_row: ['single arm dumbbell row', 'one arm db row', 'chèo tạ đơn một tay'],
+      db_rdl: ['dumbbell rdl', 'dumbbell romanian deadlift', 'deadlift rumani tạ đơn'],
+      db_goblet_squat: ['goblet squat dumbbell', 'heel elevated goblet squat', 'squat goblet kê gót'],
+      db_lunge: ['reverse dumbbell lunge', 'dumbbell lunges', 'chùng chân lùi với tạ đơn'],
+      incline_db_curl: ['incline db curl', 'incline biceps curl', 'cuốn tay trước ghế dốc'],
+      db_hammer_curl: ['hammer curl dumbbell', 'cuốn tạ búa'],
+      db_wrist_curl: ['dumbbell wrist curl', 'gập cổ tay tạ đơn'],
+      db_tricep_ext: ['dumbbell overhead triceps extension', 'overhead db triceps extension', 'duỗi tay sau tạ đơn qua đầu'],
+      diverging_lat_pulldown: ['iso lateral lat pulldown', 'independent arm lat pulldown', 'kéo xô máy tay đòn độc lập', 'kéo xô'],
+      lat_pulldown: ['cable lat pulldown', 'wide grip pulldown', 'kéo xô cáp', 'kéo xô máy cáp', 'kéo xô'],
+      seated_chest_press: ['machine chest press', 'chest press machine', 'đẩy ngực máy'],
+      vertical_row: ['machine row', 'vertical rowing machine', 'chèo lưng máy'],
+      seated_cable_row: ['low cable row', 'seated row cable', 'ngồi kéo cáp thấp'],
+      incline_smith_press: ['smith incline bench press', 'incline smith press', 'đẩy ngực dốc smith'],
+      pec_fly: ['pec deck', 'machine chest fly', 'butterfly machine', 'ép ngực pec deck'],
+      rear_delt_fly: ['reverse pec deck', 'rear delt machine fly', 'ép vai sau máy'],
+      cable_lateral_raise: ['single arm cable lateral raise', 'cable side raise', 'bay vai ngang cáp'],
+      cable_rope_triceps_pushdown: ['rope triceps pushdown', 'triceps rope pushdown', 'pushdown dây thừng'],
+      overhead_cable_triceps_ext: ['cable overhead triceps extension', 'overhead rope extension', 'duỗi tay sau cáp qua đầu'],
+      cable_biceps_curl: ['low cable biceps curl', 'cable curl bar', 'cuốn tay trước cáp'],
+      leg_press_calf_raise: ['calf raise on leg press', 'leg press calf raise', 'nhón bắp chân máy đạp đùi'],
+      leg_press: ['45 degree leg press', 'leg press machine', 'đạp đùi máy'],
+      leg_extension_machine: ['leg extension', 'leg extensions', 'machine leg extension', 'đá đùi trước máy'],
+      leg_curl: ['lying leg curl', 'prone leg curl', 'leg curl machine', 'cuốn đùi sau máy'],
+      kneeling_cable_crunch: ['kneeling cable crunch động tác lạy cụ', 'cable crunch', 'kneeling rope crunch', 'động tác lạy cụ', 'lạy cụ', 'quỳ gập bụng cáp'],
+      leg_raise: ['roman chair leg raise', 'captain chair leg raise', 'nâng chân ghế roman'],
+      ez_preacher_curl: ['preacher curl ez bar', 'ez preacher curl', 'cuốn tay trước ghế preacher'],
+      ez_skull_crusher: ['lying ez bar triceps extension', 'ez skullcrusher', 'nằm duỗi tay sau thanh ez'],
+      barbell_bench: ['barbell bench press', 'flat barbell bench press', 'đẩy ngực tạ đòn'],
+      barbell_squat: ['back squat', 'barbell back squat', 'gánh tạ đòn'],
+      bw_pullup: ['pull up', 'pullup', 'chin up', 'chinup', 'hít xà', 'kéo xà'],
+      bw_pushup: ['push up', 'pushup', 'press up', 'hít đất', 'chống đẩy'],
+      bw_dips: ['parallel bar dip', 'triceps dips', 'dips bodyweight', 'chống xà kép'],
+      bw_squat: ['air squat', 'body weight squat', 'squat không tạ'],
+      bw_plank: ['front plank', 'forearm plank', 'plank khuỷu tay'],
+      band_pull_apart: ['resistance band pull apart', 'band pull-apart', 'resistance band pull-apart / face pull', 'kéo dây kháng lực tập vai sau', 'dang dây tập vai sau'],
+      band_face_pull: ['resistance band face pull', 'band facepull', 'resistance band pull-apart / face pull', 'kéo dây kháng lực tập vai sau', 'kéo dây về mặt'],
+      band_row: ['resistance band row', 'seated band row', 'ngồi chèo dây kháng lực'],
+      band_chest_press: ['standing band chest press', 'resistance band press', 'đẩy ngực dây kháng lực'],
+      band_biceps_curl: ['resistance band biceps curl', 'band curl', 'resistance band bicep curl / tricep pushdown', 'tập tay trước / tay sau với dây kháng lực', 'cuốn tay trước dây'],
+      band_triceps_pushdown: ['band triceps pushdown', 'resistance band triceps pushdown', 'resistance band bicep curl / tricep pushdown', 'tập tay trước / tay sau với dây kháng lực', 'duỗi tay sau dây'],
+      band_assisted_pullup: ['band assisted pull up', 'assisted pullup', 'hít xà có dây trợ lực']
+    };
+
+    const EXERCISE_MATCH_STOP_WORDS = new Set(['exercise', 'bai', 'tap', 'with', 'using', 'the', 'a', 'an', 'may', 'machine']);
+
+    function getExerciseAliases(item) {
+      if (!item) return [];
+      return [...new Set([
+        item.name,
+        item.viName,
+        ...(item.keywords || []),
+        ...(EXERCISE_SEARCH_ALIASES[item.key] || [])
+      ].map(normalizeTextForMatch).filter(Boolean))];
+    }
+
+    function tokenSimilarity(a, b) {
+      const aTokens = a.split(' ').filter(t => t && !EXERCISE_MATCH_STOP_WORDS.has(t));
+      const bTokens = b.split(' ').filter(t => t && !EXERCISE_MATCH_STOP_WORDS.has(t));
+      if (!aTokens.length || !bTokens.length) return 0;
+      const used = new Set();
+      let matched = 0;
+      for (const token of aTokens) {
+        const hit = bTokens.find((candidate, index) => !used.has(index) && candidate === token);
+        if (hit !== undefined) {
+          const idx = bTokens.indexOf(hit);
+          used.add(idx);
+          matched += 1;
+        }
+      }
+      const queryCoverage = matched / aTokens.length;
+      const aliasCoverage = matched / bTokens.length;
+      const jaccard = matched / (aTokens.length + bTokens.length - matched);
+      return 0.58 * queryCoverage + 0.27 * aliasCoverage + 0.15 * jaccard;
+    }
+
+    function scoreExerciseAlias(query, alias) {
+      if (!query || !alias) return 0;
+      if (query === alias) return 1;
+      if (query.length >= 7 && alias.length >= 7) {
+        if (alias.startsWith(query) || query.startsWith(alias)) {
+          const ratio = Math.min(query.length, alias.length) / Math.max(query.length, alias.length);
+          if (ratio >= 0.78) return 0.88 + ratio * 0.08;
+        }
+      }
+      // Fuzzy một lỗi ký tự chỉ dùng cho chuỗi đủ dài để tránh ghép nhầm từ ngắn.
+      if (query.length >= 9 && alias.length >= 9 && Math.abs(query.length - alias.length) <= 1) {
+        let i = 0, j = 0, edits = 0;
+        while (i < query.length && j < alias.length) {
+          if (query[i] === alias[j]) { i++; j++; continue; }
+          edits++;
+          if (edits > 1) break;
+          if (query.length > alias.length) i++;
+          else if (alias.length > query.length) j++;
+          else { i++; j++; }
+        }
+        if (i < query.length || j < alias.length) edits++;
+        if (edits <= 1) return 0.88;
+      }
+      return tokenSimilarity(query, alias);
+    }
+
+    function getEquipmentSimilarity(query, item) {
+      if (!query || !item) return 0;
+      const target = normalizeTextForMatch(item.defaultEquipment || '');
+      if (!target) return 0;
+      if (query === target) return 1;
+      return tokenSimilarity(query, target);
+    }
+
+    function getExerciseLibraryMatch(nameStr, equipStr = '') {
+      const query = normalizeTextForMatch(nameStr);
+      const equipmentQuery = normalizeTextForMatch(equipStr);
+      if (!query || query.length < 3) return { item: null, score: 0, suggestions: [] };
+
+      const ranked = EXERCISE_LIBRARY.map(item => {
+        const aliases = getExerciseAliases(item);
+        const nameScore = Math.max(0, ...aliases.map(alias => scoreExerciseAlias(query, alias)));
+        const equipmentScore = getEquipmentSimilarity(equipmentQuery, item);
+        // Khi tên có thể bị trùng sau khi bỏ dấu (ví dụ tạ đơn / tạ đòn),
+        // dụng cụ được tăng trọng số để phân biệt; nếu thiếu dụng cụ thì giữ trạng thái mơ hồ.
+        const equipmentWeight = nameScore >= 0.92 ? 0.40 : (nameScore >= 0.68 ? 0.10 : 0);
+        const combinedScore = nameScore + equipmentScore * equipmentWeight;
+        return { item, nameScore, equipmentScore, score: combinedScore };
+      }).sort((a, b) => b.score - a.score || b.nameScore - a.nameScore);
+
+      const best = ranked[0];
+      const second = ranked[1];
+      const margin = best ? best.score - (second?.score ?? 0) : 0;
+      const strongNameMatch = best && best.nameScore >= 0.84;
+      const equipmentResolvedMatch = best && best.nameScore >= 0.70 && best.equipmentScore >= 0.58 && best.score >= 0.78;
+      const unambiguous = !second || margin >= 0.075;
+      const accepted = !!best && (strongNameMatch || equipmentResolvedMatch) && unambiguous;
+      const suggestions = ranked
+        .filter(row => row.nameScore >= 0.34)
+        .slice(0, 3)
+        .map(row => ({ key: row.item.key, name: row.item.name, viName: row.item.viName, score: row.score }));
+
+      return {
+        item: accepted ? best.item : null,
+        score: best?.score || 0,
+        nameScore: best?.nameScore || 0,
+        equipmentScore: best?.equipmentScore || 0,
+        ambiguous: !!best && !accepted && suggestions.length > 1,
+        suggestions
+      };
+    }
+
+    function findMatchingExerciseInLibrary(nameStr, equipStr = '') {
+      return getExerciseLibraryMatch(nameStr, equipStr).item;
+    }
+
+    function getRecommendedRestSecondsForName(exerciseName, equipment = '') {
+      const matched = findMatchingExerciseInLibrary(exerciseName, equipment);
+      return matched ? (EXERCISE_REST_PRESETS[matched.key] || 90) : 90;
     }
 
     const DAYS_OF_WEEK = [
@@ -2078,6 +2306,17 @@
         const day = item.days?.[dayMeta.key] || { isRest: false, title: dayMeta.label, exercises: [] };
         const exercises = Array.isArray(day.exercises) ? day.exercises : [];
         const rows = exercises.map((ex, idx) => {
+          if (isCardioExercise(ex)) {
+            const intervals = normalizeCardioIntervals(ex.intervals);
+            const duration = getCardioDurationMinutes(intervals);
+            const intervalDetails = intervals.map((q, qIndex) => `Quãng ${qIndex + 1}: dốc ${formatCompactNumber(q.incline)}% • ${formatCompactNumber(q.speed)} km/h • ${formatCardioDuration(q.duration)}`).join('<br>');
+            return `<tr class="border-t border-slate-800/80">
+              <td class="px-3 py-2.5 text-slate-500">${idx + 1}</td>
+              <td class="px-3 py-2.5"><div class="font-bold text-white">${escapeHTML(ex.name || 'Chạy bộ / Đi bộ')}</div><div class="text-[10px] text-slate-400 mt-0.5">${escapeHTML(ex.equipment || '')} • Cardio</div>${ex.notes ? `<div class="text-[10px] text-amber-200/80 mt-1.5 leading-relaxed">${escapeHTML(ex.notes)}</div>` : ''}</td>
+              <td class="px-3 py-2.5 text-cyan-300 whitespace-nowrap">Cardio</td>
+              <td class="px-3 py-2.5 text-slate-300"><div class="font-bold">${intervals.length} quãng • ${formatCardioDuration(duration)}</div><div class="text-[10px] text-slate-400 leading-relaxed mt-1">${intervalDetails}</div></td>
+            </tr>`;
+          }
           let weightText = ex.unit === 'bw' ? 'BW' : ex.unit === 'band' ? `Dây ${ex.bandColor || ''}` : `${ex.weight ?? 0} ${String(ex.unit || 'kg').toUpperCase()}`;
           const reps = Array.isArray(ex.repsList) && ex.repsList.length ? ex.repsList.join(' / ') : '—';
           return `<tr class="border-t border-slate-800/80">
@@ -2092,7 +2331,7 @@
             <div><div class="text-[10px] font-bold uppercase tracking-wider text-cyan-300">${dayMeta.label}</div><div class="text-sm font-extrabold text-white mt-0.5">${escapeHTML(day.title || dayMeta.label)} ${day.isRest ? '<span class="text-amber-300 text-xs">• Ngày nghỉ</span>' : ''}</div></div>
             <button type="button" onclick="applyPublicWorkoutDay('${dayMeta.key}')" class="px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/25 text-cyan-200 text-[11px] font-extrabold">Dùng buổi này cho ${escapeHTML(DAYS_OF_WEEK.find(d => d.key === appState.selectedDay)?.label || 'ngày đang chọn')}</button>
           </div>
-          ${exercises.length ? `<div class="overflow-x-auto"><table class="w-full min-w-[560px] text-left text-xs"><thead class="text-[10px] uppercase text-slate-500"><tr><th class="px-3 py-2">#</th><th class="px-3 py-2">Bài tập / Ghi chú</th><th class="px-3 py-2">Mức tạ</th><th class="px-3 py-2">Sets × Reps</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="px-4 py-4 text-xs text-slate-500">${day.isRest ? 'Ngày nghỉ phục hồi.' : 'Chưa có bài tập trong ngày này.'}</div>`}
+          ${exercises.length ? `<div class="overflow-x-auto"><table class="w-full min-w-[560px] text-left text-xs"><thead class="text-[10px] uppercase text-slate-500"><tr><th class="px-3 py-2">#</th><th class="px-3 py-2">Bài tập / Ghi chú</th><th class="px-3 py-2">Tải / Hệ tập</th><th class="px-3 py-2">Sets × Reps / Quãng</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="px-4 py-4 text-xs text-slate-500">${day.isRest ? 'Ngày nghỉ phục hồi.' : 'Chưa có bài tập trong ngày này.'}</div>`}
         </article>`;
       }).join('');
       showPublicWorkoutView('detail');
@@ -2186,17 +2425,29 @@
         days[dayMeta.key] = {
           isRest: !!sourceDay.isRest,
           title: String(sourceDay.title || dayMeta.label).slice(0, 100),
-          exercises: (Array.isArray(sourceDay.exercises) ? sourceDay.exercises : []).slice(0, 50).map(ex => ({
-            name: String(ex.name || 'Bài tập').slice(0, 140),
-            equipment: String(ex.equipment || '').slice(0, 180),
-            weight: Number.isFinite(Number(ex.weight)) ? Number(ex.weight) : 0,
-            unit: ['kg', 'lb', 'bw', 'band'].includes(ex.unit) ? ex.unit : 'kg',
-            bandColor: ex.bandColor ? String(ex.bandColor).slice(0, 30) : null,
-            bandCount: Number(ex.bandCount) || null,
-            sets: Math.min(30, Math.max(1, Number.parseInt(ex.sets, 10) || 1)),
-            repsList: (Array.isArray(ex.repsList) ? ex.repsList : []).slice(0, 30).map(rep => String(rep).slice(0, 12)),
-            notes: String(ex.notes || '').slice(0, 1000)
-          }))
+          exercises: (Array.isArray(sourceDay.exercises) ? sourceDay.exercises : []).slice(0, 50).map(ex => {
+            const common = {
+              name: String(ex.name || 'Bài tập').slice(0, 140),
+              equipment: String(ex.equipment || '').slice(0, 180),
+              notes: String(ex.notes || '').slice(0, 1000)
+            };
+            if (isCardioExercise(ex)) {
+              return {
+                ...common,
+                exerciseType: 'cardio',
+                intervals: normalizeCardioIntervals(ex.intervals).slice(0, 30)
+              };
+            }
+            return {
+              ...common,
+              weight: Number.isFinite(Number(ex.weight)) ? Number(ex.weight) : 0,
+              unit: ['kg', 'lb', 'bw', 'band'].includes(ex.unit) ? ex.unit : 'kg',
+              bandColor: ex.bandColor ? String(ex.bandColor).slice(0, 30) : null,
+              bandCount: Number(ex.bandCount) || null,
+              sets: Math.min(30, Math.max(1, Number.parseInt(ex.sets, 10) || 1)),
+              repsList: (Array.isArray(ex.repsList) ? ex.repsList : []).slice(0, 30).map(rep => String(rep).slice(0, 12))
+            };
+          })
         };
       });
 
@@ -2739,7 +2990,61 @@
       };
     }
 
+    function isCardioExercise(ex) {
+      return !!ex && ex.exerciseType === 'cardio';
+    }
+
+    function normalizeCardioIntervals(intervals) {
+      const source = Array.isArray(intervals) ? intervals : [];
+      const cleaned = source.slice(0, 30).map((item) => ({
+        incline: Math.max(-5, Math.min(30, Number.parseFloat(item?.incline) || 0)),
+        speed: Math.max(0, Math.min(40, Number.parseFloat(item?.speed) || 0)),
+        duration: Math.max(0.5, Math.min(240, Number.parseFloat(item?.duration) || 0.5))
+      }));
+      return cleaned.length ? cleaned : [{ incline: 0, speed: 6, duration: 5 }];
+    }
+
+    function getCardioDurationMinutes(intervals) {
+      return normalizeCardioIntervals(intervals).reduce((sum, item) => sum + item.duration, 0);
+    }
+
+    function formatCardioDuration(minutes) {
+      const totalSeconds = Math.max(0, Math.round((Number(minutes) || 0) * 60));
+      const mm = Math.floor(totalSeconds / 60);
+      const ss = totalSeconds % 60;
+      const hh = Math.floor(mm / 60);
+      const remainMins = mm % 60;
+      return hh > 0
+        ? `${String(hh).padStart(2, '0')}:${String(remainMins).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
+        : `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    }
+
+    function getCardioDistanceKm(intervals) {
+      return normalizeCardioIntervals(intervals).reduce((sum, item) => sum + (item.speed * item.duration / 60), 0);
+    }
+
     function calculateExerciseVolume(ex) {
+      if (isCardioExercise(ex)) {
+        const intervals = normalizeCardioIntervals(ex.intervals);
+        const duration = intervals.reduce((sum, item) => sum + item.duration, 0);
+        const distance = getCardioDistanceKm(intervals);
+        return {
+          unit: 'cardio',
+          weight: 0,
+          sets: 0,
+          totalReps: 0,
+          formattedChain: `${intervals.length} quãng`,
+          intervals,
+          intervalCount: intervals.length,
+          durationMinutes: duration,
+          distanceKm: distance,
+          volumeNative: 0,
+          volumeKg: 0,
+          displayPrimary: `${formatCardioDuration(duration)} cardio`,
+          displayFormula: `${intervals.length} quãng • khoảng ${formatCompactNumber(distance)} km`
+        };
+      }
+
       const unit = ex.unit || 'kg';
       const weight = parseFloat(ex.weight) || 0;
       const sets = parseInt(ex.sets, 10) || (Array.isArray(ex.repsList) ? ex.repsList.length : 0);
@@ -2802,6 +3107,7 @@
 
     function isMatchingExerciseRecord(exA, exB) {
       if (!exA || !exB) return false;
+      if (isCardioExercise(exA) !== isCardioExercise(exB)) return false;
       const fullA = normalizeTextForMatch(exA.name);
       const fullB = normalizeTextForMatch(exB.name);
       if (fullA && fullB && fullA === fullB) return true;
@@ -2993,7 +3299,309 @@
       `;
     }
 
+    // ==================== DELOAD & RUSH-IN: ĐIỀU CHỈNH KẾ HOẠCH HIỂN THỊ ====================
+    // Các chế độ này chỉ tạo prescription tạm thời để hiển thị/tính volume.
+    // Không sửa sets, repsList hoặc weight gốc của bài tập.
+    function getActiveWorkoutMode(weekObj, dayObj) {
+      if (dayObj && dayObj.rushInEnabled) return 'rush-in';
+      if ((weekObj && weekObj.deloadEnabled) || (dayObj && dayObj.deloadEnabled)) return 'deload';
+      return 'normal';
+    }
+
+    function parseRepToken(value) {
+      const raw = String(value ?? '').trim();
+      const match = raw.match(/^(\s*)(\d+(?:[.,]\d+)?)(.*)$/);
+      if (!match) return null;
+      return {
+        value: Math.max(1, Math.round(Number(match[2].replace(',', '.')) || 1)),
+        prefix: match[1] || '',
+        suffix: match[3] || ''
+      };
+    }
+
+    function formatRepToken(parsed, reps) {
+      if (!parsed) return String(reps);
+      return `${parsed.prefix}${reps}${parsed.suffix}`;
+    }
+
+    function allocateIntegerReps(weights, targetTotal) {
+      if (!weights.length) return [];
+      const safeWeights = weights.map(v => Math.max(1, Number(v) || 1));
+      const minimumTotal = safeWeights.length;
+      const total = Math.max(minimumTotal, Math.round(targetTotal));
+      const weightSum = safeWeights.reduce((a, b) => a + b, 0);
+      const raw = safeWeights.map(v => (v / weightSum) * total);
+      const result = raw.map(v => Math.max(1, Math.floor(v)));
+      let difference = total - result.reduce((a, b) => a + b, 0);
+
+      if (difference > 0) {
+        const order = raw.map((v, i) => ({ i, remainder: v - Math.floor(v) }))
+          .sort((a, b) => b.remainder - a.remainder);
+        let cursor = 0;
+        while (difference > 0) {
+          result[order[cursor % order.length].i] += 1;
+          difference -= 1;
+          cursor += 1;
+        }
+      } else if (difference < 0) {
+        const order = raw.map((v, i) => ({ i, remainder: v - Math.floor(v) }))
+          .sort((a, b) => a.remainder - b.remainder);
+        let cursor = 0;
+        while (difference < 0 && cursor < order.length * 4) {
+          const idx = order[cursor % order.length].i;
+          if (result[idx] > 1) {
+            result[idx] -= 1;
+            difference += 1;
+          }
+          cursor += 1;
+        }
+      }
+      return result;
+    }
+
+    function isRushInPriorityExercise(exercise, index) {
+      const name = normalizeTextForMatch(`${exercise?.name || ''} ${exercise?.equipment || ''}`);
+      const compoundPattern = /\b(squat|deadlift|rdl|romanian deadlift|leg press|hip thrust|lunge|bench press|chest press|shoulder press|overhead press|incline press|row|pulldown|pull up|chin up|dip|push up|barbell press)\b/;
+      return index === 0 || compoundPattern.test(name);
+    }
+
+    function getEffectiveExercisePrescription(exercise, mode = 'normal', index = 0) {
+      if (isCardioExercise(exercise)) {
+        const originalIntervals = normalizeCardioIntervals(exercise.intervals);
+        const factor = mode === 'normal' ? 1 : 0.5;
+        const intervals = originalIntervals.map(interval => ({
+          ...interval,
+          // Deload/Rush-In rút ngắn thời lượng; giữ nguyên tốc độ và độ dốc từng quãng.
+          duration: Math.max(0.5, Math.round(interval.duration * factor * 2) / 2)
+        }));
+        return {
+          exerciseType: 'cardio',
+          intervals,
+          originalIntervals,
+          originalDurationMinutes: getCardioDurationMinutes(originalIntervals),
+          durationMinutes: getCardioDurationMinutes(intervals),
+          mode,
+          reductionLabel: mode === 'normal'
+            ? ''
+            : `Rút ngắn thời lượng khoảng 50%; giữ nguyên tốc độ và độ dốc`
+        };
+      }
+
+      const originalSets = Math.max(1, Number.parseInt(exercise?.sets, 10) || (Array.isArray(exercise?.repsList) ? exercise.repsList.length : 1));
+      const sourceReps = Array.isArray(exercise?.repsList) && exercise.repsList.length
+        ? exercise.repsList.map(v => String(v ?? '12'))
+        : Array(originalSets).fill('12');
+      while (sourceReps.length < originalSets) sourceReps.push(sourceReps[sourceReps.length - 1] || '12');
+      const normalizedReps = sourceReps.slice(0, originalSets);
+
+      if (mode === 'deload') {
+        const targetSets = Math.max(1, Math.ceil(originalSets / 2));
+        const selectedReps = normalizedReps.slice(0, targetSets);
+        const parsed = selectedReps.map(parseRepToken);
+        const allNumeric = parsed.every(Boolean);
+
+        if (allNumeric) {
+          const originalTotal = normalizedReps.reduce((sum, token) => {
+            const part = parseRepToken(token);
+            return sum + (part ? part.value : 0);
+          }, 0);
+          const targetTotal = Math.max(targetSets, Math.round(originalTotal * 0.5));
+          const allocated = allocateIntegerReps(parsed.map(p => p.value), targetTotal);
+          return {
+            sets: targetSets,
+            repsList: parsed.map((part, i) => formatRepToken(part, allocated[i])),
+            originalSets,
+            originalRepsList: normalizedReps,
+            mode,
+            reductionLabel: 'Giảm khoảng 50% tổng reps/volume; giữ nguyên mức tạ'
+          };
+        }
+
+        // Với AMRAP hoặc chỉ định không có số, giảm số set; giữ nguyên nội dung reps còn lại.
+        return {
+          sets: targetSets,
+          repsList: selectedReps,
+          originalSets,
+          originalRepsList: normalizedReps,
+          mode,
+          reductionLabel: 'Giảm khoảng 50% số set; giữ nguyên mức tạ'
+        };
+      }
+
+      if (mode === 'rush-in') {
+        const isPriority = isRushInPriorityExercise(exercise, index);
+        const targetSets = Math.max(1, Math.min(originalSets, isPriority ? Math.min(2, Math.floor(originalSets * 0.75)) : 1));
+        return {
+          sets: targetSets,
+          repsList: normalizedReps.slice(0, targetSets),
+          originalSets,
+          originalRepsList: normalizedReps,
+          mode,
+          reductionLabel: isPriority
+            ? 'Rút bài ưu tiên còn 1–2 set; giữ nguyên mức tạ'
+            : 'Rút còn 1 set cho bài bổ trợ; giữ nguyên mức tạ'
+        };
+      }
+
+      return {
+        sets: originalSets,
+        repsList: normalizedReps,
+        originalSets,
+        originalRepsList: normalizedReps,
+        mode: 'normal',
+        reductionLabel: ''
+      };
+    }
+
+    function updateWorkoutModeControls(weekObj, dayObj) {
+      const weekDeload = !!weekObj?.deloadEnabled;
+      const dayDeload = !!dayObj?.deloadEnabled;
+      const rushIn = !!dayObj?.rushInEnabled;
+      const weekButton = document.getElementById('btn-week-deload');
+      const dayButton = document.getElementById('btn-day-deload');
+      const rushButton = document.getElementById('btn-rush-in');
+      const hint = document.getElementById('workout-mode-hint');
+
+      if (weekButton) {
+        weekButton.className = `px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 border ${weekDeload
+          ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md shadow-amber-500/15'
+          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'}`;
+        weekButton.innerHTML = `<span>↘</span><span>${weekDeload ? '✓ Deload tuần đang bật' : 'Deload tuần'}</span>`;
+        weekButton.setAttribute('aria-pressed', String(weekDeload));
+      }
+
+      if (dayButton) {
+        const inherited = weekDeload;
+        dayButton.disabled = inherited;
+        dayButton.className = `px-3 py-2 rounded-xl text-xs font-extrabold transition border ${inherited
+          ? 'bg-amber-400/15 text-amber-200 border-amber-400/30 opacity-80 cursor-not-allowed'
+          : dayDeload
+            ? 'bg-amber-400 text-slate-950 border-amber-300'
+            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'}`;
+        dayButton.textContent = inherited ? '✓ Deload từ tuần' : (dayDeload ? '✓ Deload ngày' : '↘ Deload ngày');
+        dayButton.title = inherited ? 'Deload tuần đã áp dụng cho ngày này.' : 'Giảm khoảng 50% volume của riêng ngày đang chọn.';
+        dayButton.setAttribute('aria-pressed', String(inherited || dayDeload));
+      }
+
+      if (rushButton) {
+        rushButton.className = `px-3 py-2 rounded-xl text-xs font-extrabold transition border ${rushIn
+          ? 'bg-cyan-400 text-slate-950 border-cyan-300 shadow-md shadow-cyan-500/15'
+          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'}`;
+        rushButton.textContent = rushIn ? '✓ Rush-In đang bật' : '⚡ Rush-In';
+        rushButton.setAttribute('aria-pressed', String(rushIn));
+      }
+
+      if (hint) {
+        if (rushIn) {
+          hint.textContent = 'Rush-In: rút gọn buổi tập; bài sức mạnh giảm số set, cardio giảm khoảng 50% thời lượng và giữ tốc độ/độ dốc. Chế độ này thay thế Deload ngày.';
+          hint.className = 'text-[11px] leading-relaxed text-cyan-300 flex-1 min-w-[180px]';
+        } else if (weekDeload) {
+          hint.textContent = 'Deload tuần: bài sức mạnh giảm khoảng 50% volume, giữ nguyên mức tạ; bài cardio giảm khoảng 50% thời lượng, giữ nguyên tốc độ/độ dốc.';
+          hint.className = 'text-[11px] leading-relaxed text-amber-200 flex-1 min-w-[180px]';
+        } else if (dayDeload) {
+          hint.textContent = 'Deload ngày: bài sức mạnh giảm khoảng 50% volume; bài cardio giảm khoảng 50% thời lượng. Mức tạ, tốc độ và độ dốc được giữ nguyên.';
+          hint.className = 'text-[11px] leading-relaxed text-amber-200 flex-1 min-w-[180px]';
+        } else {
+          hint.textContent = 'Chế độ thường: thực hiện theo sets/reps hoặc các quãng cardio gốc đã thiết lập.';
+          hint.className = 'text-[11px] leading-relaxed text-slate-400 flex-1 min-w-[180px]';
+        }
+      }
+    }
+
+    window.toggleWeekDeload = function() {
+      const week = appState.data?.weeks?.[appState.activeWeekId];
+      if (!week) return;
+      week.deloadEnabled = !week.deloadEnabled;
+      renderWorkoutSection();
+      persistUserData();
+      showToast(week.deloadEnabled
+        ? `Đã bật Deload cho toàn bộ ${appState.activeWeekId}.`
+        : `Đã tắt Deload tuần ${appState.activeWeekId}.`, 'success');
+    };
+
+    window.toggleDayDeload = function() {
+      const week = appState.data?.weeks?.[appState.activeWeekId];
+      const day = week?.days?.[appState.selectedDay];
+      if (!day) return;
+      if (week.deloadEnabled) {
+        showToast('Deload tuần đã áp dụng cho ngày này. Có thể bật Rush-In nếu cần rút ngắn thêm buổi tập.', 'info');
+        return;
+      }
+      day.deloadEnabled = !day.deloadEnabled;
+      if (day.deloadEnabled) day.rushInEnabled = false;
+      renderWorkoutSection();
+      persistUserData();
+      showToast(day.deloadEnabled ? 'Đã bật Deload cho ngày tập này.' : 'Đã tắt Deload ngày.', 'success');
+    };
+
+    window.toggleRushIn = function() {
+      const day = appState.data?.weeks?.[appState.activeWeekId]?.days?.[appState.selectedDay];
+      if (!day) return;
+      day.rushInEnabled = !day.rushInEnabled;
+      if (day.rushInEnabled) day.deloadEnabled = false;
+      renderWorkoutSection();
+      persistUserData();
+      showToast(day.rushInEnabled
+        ? 'Đã bật Rush-In: bài sức mạnh được rút số set; cardio được rút thời lượng, giữ nguyên cường độ từng quãng.'
+        : 'Đã tắt Rush-In, khôi phục khối lượng gốc của buổi tập.', 'success');
+    };
+
     // ==================== QUẢN LÝ LỊCH TẬP TUẦN & BÀI TẬP ====================
+    function renderCardioExerciseCard(ex, index, activeMode) {
+      const prescription = getEffectiveExercisePrescription(ex, activeMode, index);
+      const intervals = normalizeCardioIntervals(prescription.intervals);
+      const totalDuration = getCardioDurationMinutes(intervals);
+      const estimatedDistance = getCardioDistanceKm(intervals);
+      const intervalRows = intervals.map((q, qIndex) => `
+        <div class="grid grid-cols-[auto_1fr_1fr_1fr] sm:grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5">
+          <span class="w-7 h-7 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center text-[11px] font-extrabold">${qIndex + 1}</span>
+          <div class="min-w-0"><div class="text-[9px] uppercase tracking-wide text-slate-500">Độ dốc</div><div class="text-xs sm:text-sm font-mono font-bold text-white">${formatCompactNumber(q.incline)}%</div></div>
+          <div class="min-w-0"><div class="text-[9px] uppercase tracking-wide text-slate-500">Tốc độ</div><div class="text-xs sm:text-sm font-mono font-bold text-white">${formatCompactNumber(q.speed)} km/h</div></div>
+          <div class="min-w-0"><div class="text-[9px] uppercase tracking-wide text-slate-500">Thời gian</div><div class="text-xs sm:text-sm font-mono font-bold text-cyan-200">${formatCardioDuration(q.duration)}</div></div>
+        </div>
+      `).join('');
+      const modeNotice = activeMode !== 'normal' ? `
+        <div class="rounded-xl ${activeMode === 'deload' ? 'bg-amber-500/10 border-amber-500/25 text-amber-100' : 'bg-cyan-500/10 border-cyan-500/25 text-cyan-100'} border px-3 py-2 text-[10px] leading-relaxed">
+          <strong>${activeMode === 'deload' ? 'DELOAD' : 'RUSH-IN'}:</strong> ${escapeHTML(prescription.reductionLabel)}. Tốc độ và độ dốc từng quãng được giữ nguyên.
+          Thời gian gốc: ${formatCardioDuration(prescription.originalDurationMinutes)} → hiện tại: ${formatCardioDuration(totalDuration)}.
+        </div>` : '';
+      return `
+        <article class="rounded-3xl border p-4 sm:p-5 transition flex flex-col gap-3.5 ${ex.completed ? 'bg-emerald-950/15 border-emerald-500/40' : 'bg-slate-950/85 border-slate-800 hover:border-slate-700'}">
+          <div class="flex items-start gap-3">
+            <button type="button" onclick="toggleExerciseCompleted('${escapeHTML(ex.id)}')" title="Đánh dấu hoàn thành"
+              class="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center border-2 transition shrink-0 ${ex.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600 hover:border-emerald-400 text-transparent'}">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            </button>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                <span class="text-xs font-mono font-bold text-slate-500">#${index + 1}</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-200 text-[11px] font-semibold">${escapeHTML(ex.equipment || 'Chạy bộ / Đi bộ')}</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-bold">CARDIO</span>
+                ${ex.completed ? '<span class="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold">ĐÃ XONG</span>' : ''}
+              </div>
+              <h4 class="text-base sm:text-lg font-extrabold text-white leading-snug ${ex.completed ? 'line-through decoration-emerald-500/60 text-slate-300' : ''}">${escapeHTML(ex.name)}</h4>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tổng thời gian</div><div class="font-mono font-extrabold text-lg text-cyan-200">${formatCardioDuration(totalDuration)}</div></div>
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Số quãng</div><div class="font-mono font-extrabold text-lg text-white">${intervals.length}</div></div>
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 col-span-2 sm:col-span-1"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Quãng đường ước tính</div><div class="font-mono font-extrabold text-lg text-emerald-300">${formatCompactNumber(estimatedDistance)} km</div></div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2"><span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Thông số từng quãng</span><span class="text-[10px] text-slate-500">Độ dốc • Tốc độ • Thời gian</span></div>
+            ${intervalRows}
+          </div>
+          ${modeNotice}
+          ${ex.notes ? `<div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex items-start gap-2"><span class="shrink-0">💡</span><span><strong class="text-amber-300">Ghi chú:</strong> ${escapeHTML(ex.notes)}</span></div>` : ''}
+          <div class="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-800/80">
+            <button type="button" onclick="openExerciseModal('${escapeHTML(ex.id)}')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">✏️ Sửa</button>
+            <button type="button" onclick="duplicateExercise('${escapeHTML(ex.id)}')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">📋 Nhân bản</button>
+            <button type="button" onclick="deleteExercise('${escapeHTML(ex.id)}')" class="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold transition">🗑️ Xóa</button>
+          </div>
+        </article>
+      `;
+    }
+
     function renderWorkoutSection() {
       if (!appState.data || !appState.data.weeks) return;
       const weekIds = getSortedWeekIds();
@@ -3006,6 +3614,7 @@
       weekContainer.innerHTML = weekIds.map((wId) => {
         const isActive = wId === appState.activeWeekId;
         const label = wId === 'W1' ? 'W1 (Tuần Gốc)' : wId;
+        const isWeekDeload = !!appState.data.weeks[wId]?.deloadEnabled;
         return `
           <button type="button" onclick="selectWorkoutWeek('${wId}')"
             class="px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition ${
@@ -3014,6 +3623,7 @@
                 : 'bg-slate-950 text-slate-300 hover:text-white border border-slate-800'
             }">
             ${escapeHTML(label)}
+            ${isWeekDeload ? '<span class="ml-1 px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-200 text-[9px]">DELOAD</span>' : ''}
           </button>
         `;
       }).join('');
@@ -3060,6 +3670,7 @@
 
       document.getElementById('current-day-badge').textContent = `${appState.activeWeekId} • ${dayMeta.label.toUpperCase()}`;
       document.getElementById('session-title-input').value = activeDayObj.title || '';
+      updateWorkoutModeControls(currentWeek, activeDayObj);
 
       const btnWorkout = document.getElementById('btn-mode-workout');
       const btnRest = document.getElementById('btn-mode-rest');
@@ -3086,18 +3697,42 @@
       document.getElementById('session-progress-bar').style.width = `${pct}%`;
 
       // Tính tổng Volume của buổi tập hiện tại (quy đổi thống nhất về kg) và so sánh với buổi cùng ngày tuần trước
-      const currSessionVolKg = exercises.reduce((sum, ex) => sum + calculateExerciseVolume(ex).volumeKg, 0);
-      const currSessionReps = exercises.reduce((sum, ex) => sum + calculateExerciseVolume(ex).totalReps, 0);
+      const activeMode = getActiveWorkoutMode(currentWeek, activeDayObj);
+      const effectiveExercises = exercises.map((ex, index) => {
+        const prescription = getEffectiveExercisePrescription(ex, activeMode, index);
+        return isCardioExercise(ex)
+          ? { ...ex, intervals: prescription.intervals }
+          : { ...ex, sets: prescription.sets, repsList: prescription.repsList };
+      });
+      const strengthExercises = effectiveExercises.filter(ex => !isCardioExercise(ex));
+      const cardioExercises = effectiveExercises.filter(isCardioExercise);
+      const currSessionVolKg = strengthExercises.reduce((sum, ex) => sum + calculateExerciseVolume(ex).volumeKg, 0);
+      const currSessionReps = strengthExercises.reduce((sum, ex) => sum + calculateExerciseVolume(ex).totalReps, 0);
+      const currSessionCardioMinutes = cardioExercises.reduce((sum, ex) => sum + getCardioDurationMinutes(ex.intervals), 0);
+      const currSessionCardioDistance = cardioExercises.reduce((sum, ex) => sum + getCardioDistanceKm(ex.intervals), 0);
       const volTotalEl = document.getElementById('session-volume-total');
       const volDeltaEl = document.getElementById('session-volume-delta');
 
       if (volTotalEl) {
-        volTotalEl.textContent = currSessionVolKg > 0
+        const strengthSummary = currSessionVolKg > 0
           ? `${formatCompactNumber(currSessionVolKg)} kg`
           : `${formatCompactNumber(currSessionReps)} reps`;
+        volTotalEl.textContent = currSessionCardioMinutes > 0
+          ? (strengthExercises.length ? `${strengthSummary} • ${formatCardioDuration(currSessionCardioMinutes)} cardio` : `${formatCardioDuration(currSessionCardioMinutes)} cardio`)
+          : strengthSummary;
       }
 
       if (volDeltaEl) {
+        if (activeMode === 'deload') {
+          volDeltaEl.textContent = 'DELOAD • khoảng -50%';
+          volDeltaEl.className = 'font-mono text-[10px] font-bold text-amber-300';
+        } else if (activeMode === 'rush-in') {
+          volDeltaEl.textContent = 'RUSH-IN • bản rút gọn';
+          volDeltaEl.className = 'font-mono text-[10px] font-bold text-cyan-300';
+        } else if (currSessionCardioMinutes > 0) {
+          volDeltaEl.textContent = `${cardioExercises.length} bài cardio • ≈ ${formatCompactNumber(currSessionCardioDistance)} km`;
+          volDeltaEl.className = 'font-mono text-[10px] font-bold text-cyan-300';
+        } else {
         const currWeekIdx = weekIds.indexOf(appState.activeWeekId);
         if (currWeekIdx <= 0) {
           volDeltaEl.textContent = 'W1 Gốc';
@@ -3124,6 +3759,7 @@
             volDeltaEl.className = 'font-mono text-[10px] font-bold text-slate-500';
           }
         }
+        }
       }
 
       if (exercises.length === 0) {
@@ -3142,12 +3778,17 @@
       }
 
       exListContainer.innerHTML = exercises.map((ex, index) => {
+        if (isCardioExercise(ex)) return renderCardioExerciseCard(ex, index, activeMode);
         const matchedLib = findMatchingExerciseInLibrary(ex.name, ex.equipment);
-        const recommendedRestSeconds = getRecommendedRestSecondsForName(ex.name);
+        const recommendedRestSeconds = getRecommendedRestSecondsForName(ex.name, ex.equipment);
         const isIllusOpen = !!appState.expandedCardIllustrations[ex.id];
-        const volStats = calculateExerciseVolume(ex);
+        const prescription = getEffectiveExercisePrescription(ex, activeMode, index);
+        const displayExercise = { ...ex, sets: prescription.sets, repsList: prescription.repsList };
+        const volStats = calculateExerciseVolume(displayExercise);
         const prevRecord = findPreviousWeekExerciseRecord(ex, appState.activeWeekId, appState.selectedDay);
-        const comparisonHTML = buildPreviousWeekComparisonHTML(ex, prevRecord);
+        const comparisonHTML = activeMode === 'normal'
+          ? buildPreviousWeekComparisonHTML(ex, prevRecord)
+          : `<div class="rounded-2xl bg-slate-900/80 border border-slate-700/70 p-3 text-[11px] text-slate-400">Phần đối chiếu tuần trước được ẩn khi đang dùng chế độ điều chỉnh để tránh so sánh kế hoạch rút gọn với khối lượng gốc.</div>`;
 
         // Hiển thị mức tạ theo 4 loại đơn vị: KG | LB | BW | DÂY
         let weightDisplayHTML = '';
@@ -3192,7 +3833,7 @@
           `;
         }
 
-        const repsBadges = (Array.isArray(ex.repsList) ? ex.repsList : ['10'])
+        const repsBadges = (Array.isArray(displayExercise.repsList) ? displayExercise.repsList : ['10'])
           .map(r => `<span class="font-mono font-extrabold text-xs sm:text-sm text-emerald-400">${escapeHTML(r)}</span>`)
           .join('<span class="text-slate-600 mx-0.5">-</span>');
 
@@ -3239,9 +3880,9 @@
                 </div>
 
                 <div class="p-2.5 sm:p-3 rounded-2xl bg-slate-900 border border-slate-800/90">
-                  <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Số Sets</div>
+                  <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">${activeMode === 'normal' ? 'Số Sets' : 'Sets theo chế độ'}</div>
                   <div class="flex items-baseline gap-1">
-                    <span class="font-mono font-extrabold text-lg sm:text-xl text-white">${ex.sets}</span>
+                    <span class="font-mono font-extrabold text-lg sm:text-xl text-white">${displayExercise.sets}</span>
                     <span class="text-xs text-slate-400 font-semibold">sets</span>
                   </div>
                   <div class="text-[10px] text-slate-500 mt-0.5">Hiệp tập</div>
@@ -3263,6 +3904,14 @@
                   <div class="text-[10px] font-mono text-slate-400 mt-0.5 truncate">${escapeHTML(volStats.displayFormula)}</div>
                 </div>
               </div>
+
+              ${activeMode !== 'normal' ? `
+                <div class="rounded-xl ${activeMode === 'deload' ? 'bg-amber-500/10 border-amber-500/25 text-amber-100' : 'bg-cyan-500/10 border-cyan-500/25 text-cyan-100'} border px-3 py-2 text-[10px] leading-relaxed">
+                  <strong>${activeMode === 'deload' ? 'DELOAD' : 'RUSH-IN'}:</strong>
+                  ${escapeHTML(prescription.originalSets)} set gốc → <strong>${prescription.sets} set mục tiêu</strong>.
+                  ${escapeHTML(prescription.reductionLabel)}.
+                </div>
+              ` : ''}
 
               <!-- Khung đối chiếu lịch sử tại chỗ với tuần trước -->
               ${comparisonHTML}
@@ -3306,13 +3955,13 @@
               ${isIllusOpen ? `
                 <div class="rounded-2xl bg-[#080d19] border border-cyan-500/35 p-3 space-y-2 animate-modal">
                   <div class="flex items-center justify-between gap-2 flex-wrap text-[11px]">
-                    <span class="font-extrabold text-cyan-300">📐 ${escapeHTML(matchedLib.name)}${matchedLib.viName ? ` — ${escapeHTML(matchedLib.viName)}` : ''}</span>
-                    <span class="text-emerald-400 font-semibold">${escapeHTML(matchedLib.muscles)}</span>
+                    <span class="font-extrabold text-cyan-300">📐 ${matchedLib ? escapeHTML(matchedLib.name) : 'Bài tập tùy chỉnh — chưa có vector riêng'}</span>
+                    <span class="text-emerald-400 font-semibold">${matchedLib ? escapeHTML(matchedLib.muscles) : 'Chưa xác định nhóm cơ'}</span>
                   </div>
                   <div class="rounded-xl overflow-hidden border border-slate-800">
-                    ${renderExerciseSVG(matchedLib.svgType, activeBandHex)}
+                    ${matchedLib ? renderExerciseSVG(matchedLib.svgType, activeBandHex) : renderUnmatchedExerciseSVG()}
                   </div>
-                  <p class="text-[11px] text-slate-300 leading-relaxed">${escapeHTML(matchedLib.tips)}</p>
+                  <p class="text-[11px] text-slate-300 leading-relaxed">${matchedLib ? escapeHTML(matchedLib.tips) : 'FitSync không sử dụng hình minh họa của bài gần giống để tránh nhầm lẫn về kỹ thuật. Bạn có thể tải ảnh thực tế riêng cho bài tập này.'}</p>
                 </div>
               ` : ''}
             </div>
@@ -3413,6 +4062,9 @@
       const clonedDays = JSON.parse(JSON.stringify(previousWeek.days));
 
       Object.keys(clonedDays).forEach((dKey) => {
+        // Chỉ sao chép giáo án gốc; các chế độ Deload/Rush-In luôn khởi động ở trạng thái tắt.
+        clonedDays[dKey].deloadEnabled = false;
+        clonedDays[dKey].rushInEnabled = false;
         (clonedDays[dKey].exercises || []).forEach((ex, idx) => {
           ex.id = `ex-${newWeekId}-${dKey}-${Date.now()}-${idx}`;
           ex.completed = false;
@@ -3423,6 +4075,7 @@
         id: newWeekId,
         label: newWeekId,
         createdAt: new Date().toISOString(),
+        deloadEnabled: false,
         days: clonedDays
       };
       appState.activeWeekId = newWeekId;
@@ -3471,43 +4124,6 @@
     };
 
     // ==================== MODAL THÊM / SỬA BÀI TẬP & NHẬN DIỆN TỰ ĐỘNG ====================
-    function findMatchingExerciseInLibrary(nameStr, equipStr) {
-      const qName = normalizeTextForMatch(nameStr);
-      const qEquip = normalizeTextForMatch(equipStr);
-      const combined = `${qName} ${qEquip}`.trim();
-
-      if (!combined) return EXERCISE_LIBRARY[0];
-
-      let bestItem = EXERCISE_LIBRARY[0];
-      let bestScore = -1;
-
-      for (const item of EXERCISE_LIBRARY) {
-        let score = 0;
-        const normItemName = normalizeTextForMatch(item.name);
-        const normItemEquip = normalizeTextForMatch(item.defaultEquipment);
-
-        if (qName && normItemName === qName) score += 35;
-        else if (qName && normItemName.includes(qName) && qName.length >= 4) score += 14;
-        else if (qName && qName.includes(normItemName) && normItemName.length >= 4) score += 16;
-
-        if (qEquip && normItemEquip === qEquip) score += 16;
-        else if (qEquip && (normItemEquip.includes(qEquip) || qEquip.includes(normItemEquip)) && qEquip.length >= 5) score += 8;
-
-        for (const kw of item.keywords) {
-          const nkw = normalizeTextForMatch(kw);
-          if (qName && qName === nkw) score += 18;
-          else if (qName && qName.includes(nkw)) score += 9;
-          else if (qEquip && qEquip.includes(nkw)) score += 5;
-        }
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestItem = item;
-        }
-      }
-      return bestItem;
-    }
-
     window.switchEquipCategory = function(cat) {
       appState.modalEquipCat = cat;
       ['all', 'db', 'machine', 'bw', 'band'].forEach((c) => {
@@ -3647,37 +4263,120 @@
     };
 
     window.onExerciseInputChange = function() {
-      const nameVal = document.getElementById('ex-name').value;
-      const equipVal = document.getElementById('ex-equipment').value;
-      const matched = findMatchingExerciseInLibrary(nameVal, equipVal);
+      if (document.getElementById('ex-type')?.value === 'cardio') {
+        const matchedKeyInput = document.getElementById('ex-matched-key');
+        if (matchedKeyInput) matchedKeyInput.value = '';
+        updateModalVolumeAndComparison();
+        return;
+      }
+      const nameVal = document.getElementById('ex-name')?.value || '';
+      const equipVal = document.getElementById('ex-equipment')?.value || '';
+      const matchResult = getExerciseLibraryMatch(nameVal, equipVal);
+      const matched = matchResult.item;
+      const matchedKeyInput = document.getElementById('ex-matched-key');
+      const title = document.getElementById('recog-title');
+      const status = document.getElementById('recog-status');
+      const muscles = document.getElementById('recog-muscles');
+      const tips = document.getElementById('recog-tips-text');
+      const svgBox = document.getElementById('recog-svg-box');
+      const suggestionsBox = document.getElementById('recog-suggestions');
+      const tipButton = document.querySelector('#smart-recognition-panel button[onclick="applyRecognizedTips()"]');
+      const equipmentButton = document.querySelector('#smart-recognition-panel button[onclick="applyRecognizedEquipment()"]');
+      const normalizeNameButton = document.getElementById('btn-normalize-exercise-name');
 
-      document.getElementById('ex-matched-key').value = matched.key;
-      document.getElementById('recog-title').textContent = matched.viName
-        ? `${matched.name} (${matched.viName})`
-        : matched.name;
-      document.getElementById('recog-muscles').textContent = matched.muscles;
-      document.getElementById('recog-tips-text').textContent = matched.tips;
+      if (matchedKeyInput) matchedKeyInput.value = matched ? matched.key : '';
+      if (matched) {
+        if (title) title.textContent = matched.viName ? `${matched.name} (${matched.viName})` : matched.name;
+        if (status) {
+          status.textContent = 'Đã nhận diện';
+          status.className = 'text-[10px] font-bold text-emerald-400';
+        }
+        if (muscles) muscles.textContent = matched.muscles;
+        if (tips) tips.textContent = matched.tips;
+        if (svgBox) svgBox.innerHTML = renderExerciseSVG(matched.svgType, appState.modalWeightUnit === 'band'
+          ? (RESISTANCE_BAND_COLORS.find(b => b.id === appState.modalBandColor) || RESISTANCE_BAND_COLORS[2]).hex
+          : '#22c55e');
+        if (tipButton) tipButton.disabled = false;
+        if (equipmentButton) equipmentButton.disabled = false;
+        if (normalizeNameButton) normalizeNameButton.classList.toggle('hidden', normalizeTextForMatch(nameVal) === normalizeTextForMatch(matched.name));
+        if (suggestionsBox) {
+          suggestionsBox.classList.add('hidden');
+          suggestionsBox.innerHTML = '';
+        }
+      } else {
+        if (title) title.textContent = nameVal.trim() ? 'Bài tập tùy chỉnh' : 'Chưa có tên bài tập';
+        if (status) {
+          status.textContent = matchResult.ambiguous ? 'Có bài gần giống — cần chọn thủ công' : (nameVal.trim() ? 'Chưa khớp thư viện' : 'Nhập tên để nhận diện');
+          status.className = 'text-[10px] font-bold ' + (matchResult.ambiguous ? 'text-amber-300' : 'text-slate-400');
+        }
+        if (muscles) muscles.textContent = 'Chưa xác định nhóm cơ';
+        if (tips) tips.textContent = 'Không tự động sử dụng hướng dẫn hoặc hình minh họa của bài khác. Bạn có thể lưu bài tập tùy chỉnh và bổ sung ảnh thực tế cho bài tập này.';
+        if (svgBox) svgBox.innerHTML = renderUnmatchedExerciseSVG();
+        if (tipButton) tipButton.disabled = true;
+        if (equipmentButton) equipmentButton.disabled = true;
+        if (normalizeNameButton) normalizeNameButton.classList.add('hidden');
 
-      const bandObj = RESISTANCE_BAND_COLORS.find(b => b.id === appState.modalBandColor) || RESISTANCE_BAND_COLORS[2];
-      const svgColor = appState.modalWeightUnit === 'band' ? bandObj.hex : '#22c55e';
-      document.getElementById('recog-svg-box').innerHTML = renderExerciseSVG(matched.svgType, svgColor);
+        if (suggestionsBox) {
+          const suggestions = matchResult.suggestions || [];
+          if (suggestions.length && nameVal.trim()) {
+            suggestionsBox.classList.remove('hidden');
+            suggestionsBox.innerHTML = `
+              <div class="flex items-start gap-2 min-w-0">
+                <span class="shrink-0 rounded-lg bg-amber-500/15 border border-amber-500/25 px-2 py-1 text-amber-300 text-[10px] font-extrabold">CẦN XÁC NHẬN</span>
+                <div class="min-w-0">
+                  <div class="text-xs font-extrabold text-amber-200">Các bài tập có tên hoặc dụng cụ gần giống</div>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Chọn một phương án nếu đúng với bài đang thực hiện. Hệ thống không tự áp dụng gợi ý khi chưa có xác nhận.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 min-w-0">
+                ${suggestions.map(item => `
+                  <div class="min-w-0 rounded-xl border border-slate-700 bg-slate-900 p-3 flex flex-col gap-2">
+                    <div class="text-xs font-bold text-white break-words">${escapeHTML(item.name)}</div>
+                    <div class="text-[10px] text-slate-400 break-words">${escapeHTML(item.viName || 'Bài tập trong thư viện')}</div>
+                    <button type="button" onclick="chooseRecognitionSuggestion('${item.key}')" class="w-full mt-auto px-3 py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-200 text-[11px] font-bold transition">Chọn bài tập này</button>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          } else {
+            suggestionsBox.classList.add('hidden');
+            suggestionsBox.innerHTML = '';
+          }
+        }
+      }
 
-      const recommendedRest = getRecommendedRestSecondsForName(nameVal);
+      const recommendedRest = matched ? (EXERCISE_REST_PRESETS[matched.key] || 90) : 90;
       const restLabel = document.getElementById('modal-rest-recommendation');
       const restDescription = document.getElementById('modal-rest-description');
       if (restLabel) restLabel.textContent = formatRestDuration(recommendedRest);
-      if (restDescription) {
-        restDescription.textContent = EXERCISE_LIBRARY.some((entry) => {
-          const names = [entry.name, entry.viName, ...(entry.keywords || [])];
-          return names.some((name) => normalizeTextForMatch(name) === normalizeTextForMatch(nameVal));
-        }) ? 'Theo bài tập trong thư viện' : 'Mặc định cho bài tập tùy chỉnh';
-      }
+      if (restDescription) restDescription.textContent = matched ? 'Theo bài tập đã nhận diện' : 'Mặc định cho bài tập tùy chỉnh';
 
       updateModalVolumeAndComparison();
     };
 
+    window.chooseRecognitionSuggestion = function(key) {
+      const item = EXERCISE_LIBRARY.find(entry => entry.key === key);
+      if (!item) return;
+      document.getElementById('ex-name').value = item.name;
+      document.getElementById('ex-equipment').value = item.defaultEquipment;
+      if (!document.getElementById('ex-notes').value.trim()) {
+        document.getElementById('ex-notes').value = item.tips;
+      }
+      onExerciseInputChange();
+      showToast(`Đã chọn bài tập: ${item.name}`, 'success');
+    };
+
     function getDraftExerciseFromModal() {
       const name = document.getElementById('ex-name')?.value?.trim() || '';
+      const exerciseType = document.getElementById('ex-type')?.value || 'strength';
+      if (exerciseType === 'cardio') {
+        return {
+          name,
+          equipment: document.getElementById('ex-cardio-equipment')?.value?.trim() || 'Máy chạy bộ',
+          exerciseType: 'cardio',
+          intervals: getCardioIntervalsFromModal()
+        };
+      }
       const equipment = document.getElementById('ex-equipment')?.value?.trim() || '';
       const unit = appState.modalWeightUnit;
       const weight = unit === 'bw' || unit === 'band' ? 0 : (parseFloat(document.getElementById('ex-weight')?.value) || 0);
@@ -3698,11 +4397,19 @@
       if (!volBadge || !detailBox) return;
 
       const draftEx = getDraftExerciseFromModal();
+      if (isCardioExercise(draftEx)) {
+        const intervals = normalizeCardioIntervals(draftEx.intervals);
+        const duration = getCardioDurationMinutes(intervals);
+        const distance = getCardioDistanceKm(intervals);
+        volBadge.textContent = `${formatCardioDuration(duration)} • ${intervals.length} quãng • ≈ ${formatCompactNumber(distance)} km`;
+        cachedModalPrevRecord = null;
+        if (copyBtn) copyBtn.classList.add('hidden');
+        detailBox.innerHTML = `<span class="text-slate-400">Bài cardio được theo dõi bằng tổng thời gian và quãng đường ước tính. Không sử dụng thông số sets, reps hoặc mức tạ.</span>`;
+        return;
+      }
       const currStats = calculateExerciseVolume(draftEx);
 
-      volBadge.textContent = currStats.unit === 'bw' || currStats.unit === 'band'
-        ? `${currStats.displayPrimary} (${currStats.displayFormula})`
-        : `${currStats.displayPrimary} (${currStats.displayFormula})`;
+      volBadge.textContent = `${currStats.displayPrimary} (${currStats.displayFormula})`;
 
       cachedModalPrevRecord = draftEx.name
         ? findPreviousWeekExerciseRecord(draftEx, appState.activeWeekId, appState.selectedDay)
@@ -3761,7 +4468,8 @@
     };
 
     window.copyPreviousWeekParamsToModal = function() {
-      if (!cachedModalPrevRecord || !cachedModalPrevRecord.exercise) return;
+      if (document.getElementById('ex-type')?.value === 'cardio') return;
+      if (!cachedModalPrevRecord || !cachedModalPrevRecord.exercise || isCardioExercise(cachedModalPrevRecord.exercise)) return;
       const prevEx = cachedModalPrevRecord.exercise;
       document.getElementById('ex-sets').value = prevEx.sets || 3;
 
@@ -3794,6 +4502,114 @@
       if (!item) return;
       document.getElementById('ex-equipment').value = item.defaultEquipment;
       showToast('Đã áp dụng dụng cụ gợi ý!', 'success');
+    };
+
+    window.applyRecognizedCanonicalName = function() {
+      const key = document.getElementById('ex-matched-key')?.value;
+      const item = EXERCISE_LIBRARY.find(e => e.key === key);
+      if (!item) return;
+      document.getElementById('ex-name').value = item.name;
+      onExerciseInputChange();
+      showToast(`Đã chuẩn hóa tên thành "${item.name}". Dữ liệu bài tập hiện tại không bị xóa.`, 'success');
+    };
+
+    function getCardioIntervalsFromModal() {
+      const rows = Array.from(document.querySelectorAll('#cardio-intervals-container [data-cardio-row]'));
+      const intervals = rows.map(row => ({
+        incline: Number.parseFloat(row.querySelector('[data-cardio-field="incline"]')?.value) || 0,
+        speed: Number.parseFloat(row.querySelector('[data-cardio-field="speed"]')?.value) || 0,
+        duration: Number.parseFloat(row.querySelector('[data-cardio-field="duration"]')?.value) || 0.5
+      }));
+      return normalizeCardioIntervals(intervals);
+    }
+
+    window.renderCardioIntervals = function(existingIntervals = null) {
+      const container = document.getElementById('cardio-intervals-container');
+      if (!container) return;
+      const intervals = normalizeCardioIntervals(existingIntervals || getCardioIntervalsFromModal());
+      container.innerHTML = intervals.map((q, index) => `
+        <div data-cardio-row class="rounded-2xl border border-slate-800 bg-slate-900/80 p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center text-xs font-extrabold">${index + 1}</span>
+              <span class="text-xs font-extrabold text-white">Quãng ${index + 1}</span>
+            </div>
+            <button type="button" onclick="removeCardioInterval(${index})" ${intervals.length <= 1 ? 'disabled' : ''}
+              class="px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-bold disabled:opacity-30 disabled:cursor-not-allowed">Xóa quãng</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <label class="block min-w-0">
+              <span class="block text-[10px] font-bold text-slate-400 mb-1">Độ dốc (%)</span>
+              <input type="number" inputmode="decimal" min="-5" max="30" step="0.5" value="${q.incline}" data-cardio-field="incline" oninput="updateCardioSummary()"
+                class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold text-sm focus:outline-none focus:border-cyan-500" />
+            </label>
+            <label class="block min-w-0">
+              <span class="block text-[10px] font-bold text-slate-400 mb-1">Tốc độ (km/h)</span>
+              <input type="number" inputmode="decimal" min="0" max="40" step="0.1" value="${q.speed}" data-cardio-field="speed" oninput="updateCardioSummary()"
+                class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold text-sm focus:outline-none focus:border-cyan-500" />
+            </label>
+            <label class="block min-w-0">
+              <span class="block text-[10px] font-bold text-slate-400 mb-1">Thời gian (phút)</span>
+              <input type="number" inputmode="decimal" min="0.5" max="240" step="0.5" value="${q.duration}" data-cardio-field="duration" oninput="updateCardioSummary()"
+                class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold text-sm focus:outline-none focus:border-cyan-500" />
+            </label>
+          </div>
+        </div>
+      `).join('');
+      updateCardioSummary();
+    };
+
+    window.addCardioInterval = function() {
+      const intervals = getCardioIntervalsFromModal();
+      if (intervals.length >= 30) {
+        showToast('Mỗi bài cardio có thể có tối đa 30 quãng.', 'info');
+        return;
+      }
+      const last = intervals[intervals.length - 1] || { incline: 0, speed: 6, duration: 5 };
+      intervals.push({ incline: last.incline, speed: last.speed, duration: 2 });
+      renderCardioIntervals(intervals);
+    };
+
+    window.removeCardioInterval = function(index) {
+      const intervals = getCardioIntervalsFromModal();
+      if (intervals.length <= 1) return;
+      intervals.splice(index, 1);
+      renderCardioIntervals(intervals);
+    };
+
+    window.updateCardioSummary = function() {
+      const badge = document.getElementById('cardio-total-preview');
+      if (!badge) return;
+      const rows = Array.from(document.querySelectorAll('#cardio-intervals-container [data-cardio-row]'));
+      const total = rows.reduce((sum, row) => sum + (Number.parseFloat(row.querySelector('[data-cardio-field="duration"]')?.value) || 0), 0);
+      badge.textContent = `${rows.length} quãng • ${formatCardioDuration(total)}`;
+      updateModalVolumeAndComparison();
+    };
+
+    window.onExerciseTypeChange = function() {
+      const type = document.getElementById('ex-type')?.value || 'strength';
+      const isCardio = type === 'cardio';
+      document.getElementById('strength-fields')?.classList.toggle('hidden', isCardio);
+      document.getElementById('cardio-fields')?.classList.toggle('hidden', !isCardio);
+      document.getElementById('exercise-library-open-btn')?.classList.toggle('hidden', isCardio);
+      const equipment = document.getElementById('ex-equipment');
+      const weight = document.getElementById('ex-weight');
+      const sets = document.getElementById('ex-sets');
+      const cardioEquipment = document.getElementById('ex-cardio-equipment');
+      if (equipment) equipment.required = !isCardio;
+      if (weight) weight.required = !isCardio;
+      if (sets) sets.required = !isCardio;
+      if (cardioEquipment) cardioEquipment.required = isCardio;
+      if (isCardio) {
+        const currentEquipment = equipment?.value?.trim();
+        if (cardioEquipment && (!cardioEquipment.value.trim() || cardioEquipment.value === 'Máy chạy bộ') && currentEquipment) {
+          cardioEquipment.value = /treadmill|chạy|đi bộ|outdoor|ngoài trời/i.test(currentEquipment) ? currentEquipment : 'Máy chạy bộ';
+        }
+        updateCardioSummary();
+      } else {
+        onExerciseInputChange();
+        updateModalVolumeAndComparison();
+      }
     };
 
     window.adjustSetsCount = function(delta) {
@@ -3855,6 +4671,9 @@
       const dayMeta = DAYS_OF_WEEK.find(d => d.key === appState.selectedDay) || DAYS_OF_WEEK[0];
       document.getElementById('exercise-modal-subtitle').textContent = `Tuần ${appState.activeWeekId} • ${dayMeta.label}`;
       switchEquipCategory('all');
+      document.getElementById('ex-type').value = 'strength';
+      document.getElementById('ex-cardio-equipment').value = 'Máy chạy bộ';
+      renderCardioIntervals([{ incline: 0, speed: 6, duration: 5 }]);
 
       if (editExId) {
         const dayObj = appState.data.weeks[appState.activeWeekId].days[appState.selectedDay];
@@ -3863,12 +4682,17 @@
 
         document.getElementById('exercise-modal-title').textContent = 'Chỉnh sửa bài tập';
         document.getElementById('ex-id').value = ex.id;
+        document.getElementById('ex-type').value = isCardioExercise(ex) ? 'cardio' : 'strength';
         document.getElementById('ex-name').value = ex.name;
         document.getElementById('ex-equipment').value = ex.equipment || '';
         document.getElementById('ex-sets').value = ex.sets || 3;
         document.getElementById('ex-notes').value = ex.notes || '';
         document.getElementById('ex-completed').checked = !!ex.completed;
         setModalCustomPhotoPreview(ex.customPhoto || null);
+        if (isCardioExercise(ex)) {
+          document.getElementById('ex-cardio-equipment').value = ex.equipment || 'Máy chạy bộ';
+          renderCardioIntervals(ex.intervals || [{ incline: 0, speed: 6, duration: 5 }]);
+        }
 
         if (ex.unit === 'band') {
           appState.modalBandColor = ex.bandColor || 'black';
@@ -3897,7 +4721,9 @@
         renderPerSetRepInputs(['12', '12', '12']);
       }
 
-      onExerciseInputChange();
+      onExerciseTypeChange();
+      if (document.getElementById('ex-type').value === 'cardio') updateCardioSummary();
+      else onExerciseInputChange();
       document.getElementById('exercise-modal').classList.remove('hidden');
     };
 
@@ -3909,41 +4735,50 @@
       event.preventDefault();
       const id = document.getElementById('ex-id').value;
       const name = document.getElementById('ex-name').value.trim();
-      const equipment = document.getElementById('ex-equipment').value.trim();
-      const unit = appState.modalWeightUnit;
-      const weight = unit === 'bw' || unit === 'band' ? 0 : (parseFloat(document.getElementById('ex-weight').value) || 0);
-      const sets = parseInt(document.getElementById('ex-sets').value, 10) || 1;
+      const exerciseType = document.getElementById('ex-type')?.value || 'strength';
       const notes = document.getElementById('ex-notes').value.trim();
       const completed = document.getElementById('ex-completed').checked;
-      const repsList = Array.from(document.querySelectorAll('#per-set-reps-container input')).map(i => i.value.trim() || '12');
-      const bandColor = unit === 'band' ? appState.modalBandColor : null;
-      const bandCount = unit === 'band' ? (parseInt(document.getElementById('ex-band-count')?.value, 10) || 1) : null;
-      const customPhoto = appState.modalCustomPhoto || null;
-
       const dayObj = appState.data.weeks[appState.activeWeekId].days[appState.selectedDay];
+      const existingIndex = id ? dayObj.exercises.findIndex(e => e.id === id) : -1;
+      const existing = existingIndex >= 0 ? dayObj.exercises[existingIndex] : null;
 
-      if (id) {
-        const idx = dayObj.exercises.findIndex(e => e.id === id);
-        if (idx !== -1) {
-          dayObj.exercises[idx] = {
-            ...dayObj.exercises[idx],
-            name,
-            equipment,
-            weight,
-            unit,
-            bandColor,
-            bandCount,
-            sets,
-            repsList,
-            notes,
-            completed,
-            customPhoto
-          };
+      if (exerciseType === 'cardio') {
+        const equipment = document.getElementById('ex-cardio-equipment').value.trim() || 'Máy chạy bộ';
+        const intervals = getCardioIntervalsFromModal();
+        if (!name) {
+          showToast('Vui lòng nhập tên bài tập cardio.', 'error');
+          document.getElementById('ex-name').focus();
+          return;
         }
-        showToast('Đã cập nhật bài tập!', 'success');
+        if (!intervals.length || intervals.some(q => q.duration <= 0)) {
+          showToast('Vui lòng nhập thời gian hợp lệ cho từng quãng.', 'error');
+          return;
+        }
+        const cardioRecord = {
+          id: existing?.id || ('ex-' + Date.now()),
+          name,
+          equipment,
+          exerciseType: 'cardio',
+          intervals,
+          notes,
+          completed,
+          ...(existing?.customPhoto ? { customPhoto: existing.customPhoto } : {})
+        };
+        if (existingIndex >= 0) dayObj.exercises[existingIndex] = cardioRecord;
+        else dayObj.exercises.push(cardioRecord);
+        showToast(existing ? 'Đã cập nhật bài cardio!' : 'Đã thêm bài cardio vào lịch!', 'success');
       } else {
-        dayObj.exercises.push({
-          id: 'ex-' + Date.now(),
+        const equipment = document.getElementById('ex-equipment').value.trim();
+        const unit = appState.modalWeightUnit;
+        const weight = unit === 'bw' || unit === 'band' ? 0 : (parseFloat(document.getElementById('ex-weight').value) || 0);
+        const sets = parseInt(document.getElementById('ex-sets').value, 10) || 1;
+        const repsList = Array.from(document.querySelectorAll('#per-set-reps-container input')).map(i => i.value.trim() || '12');
+        const bandColor = unit === 'band' ? appState.modalBandColor : null;
+        const bandCount = unit === 'band' ? (parseInt(document.getElementById('ex-band-count')?.value, 10) || 1) : null;
+        const customPhoto = appState.modalCustomPhoto || existing?.customPhoto || null;
+        const strengthRecord = {
+          ...(existing || {}),
+          id: existing?.id || ('ex-' + Date.now()),
           name,
           equipment,
           weight,
@@ -3955,8 +4790,12 @@
           notes,
           completed,
           customPhoto
-        });
-        showToast('Đã thêm bài tập mới vào lịch!', 'success');
+        };
+        delete strengthRecord.exerciseType;
+        delete strengthRecord.intervals;
+        if (existingIndex >= 0) dayObj.exercises[existingIndex] = strengthRecord;
+        else dayObj.exercises.push(strengthRecord);
+        showToast(existing ? 'Đã cập nhật bài tập!' : 'Đã thêm bài tập mới vào lịch!', 'success');
       }
 
       closeExerciseModal();
@@ -4339,69 +5178,9 @@
 
     window.startModalRecommendedRest = function() {
       const exerciseName = document.getElementById('ex-name')?.value?.trim() || 'Bài tập';
-      const recommendedSeconds = getRecommendedRestSecondsForName(exerciseName);
+      const recommendedSeconds = getRecommendedRestSecondsForName(exerciseName, document.getElementById('ex-equipment')?.value || '');
       closeExerciseModal();
       quickStartRestFromExercise(exerciseName, recommendedSeconds);
-    };
-
-    window.closeExerciseModal = function() {
-      document.getElementById('exercise-modal').classList.add('hidden');
-    };
-
-    window.handleExerciseSave = function(event) {
-      event.preventDefault();
-      const id = document.getElementById('ex-id').value;
-      const name = document.getElementById('ex-name').value.trim();
-      const equipment = document.getElementById('ex-equipment').value.trim();
-      const unit = appState.modalWeightUnit;
-      const weight = unit === 'bw' || unit === 'band' ? 0 : (parseFloat(document.getElementById('ex-weight').value) || 0);
-      const sets = parseInt(document.getElementById('ex-sets').value, 10) || 1;
-      const notes = document.getElementById('ex-notes').value.trim();
-      const completed = document.getElementById('ex-completed').checked;
-      const repsList = Array.from(document.querySelectorAll('#per-set-reps-container input')).map(i => i.value.trim() || '12');
-      const bandColor = unit === 'band' ? appState.modalBandColor : null;
-      const bandCount = unit === 'band' ? (parseInt(document.getElementById('ex-band-count')?.value, 10) || 1) : null;
-
-      const dayObj = appState.data.weeks[appState.activeWeekId].days[appState.selectedDay];
-
-      if (id) {
-        const idx = dayObj.exercises.findIndex(e => e.id === id);
-        if (idx !== -1) {
-          dayObj.exercises[idx] = {
-            ...dayObj.exercises[idx],
-            name,
-            equipment,
-            weight,
-            unit,
-            bandColor,
-            bandCount,
-            sets,
-            repsList,
-            notes,
-            completed
-          };
-        }
-        showToast('Đã cập nhật bài tập!', 'success');
-      } else {
-        dayObj.exercises.push({
-          id: 'ex-' + Date.now(),
-          name,
-          equipment,
-          weight,
-          unit,
-          bandColor,
-          bandCount,
-          sets,
-          repsList,
-          notes,
-          completed
-        });
-        showToast('Đã thêm bài tập mới vào lịch!', 'success');
-      }
-
-      closeExerciseModal();
-      renderWorkoutSection();
-      persistUserData();
     };
 
     // ==================== THEO DÕI INBODY & BIỂU ĐỒ SVG ====================
@@ -4617,7 +5396,7 @@
 
     window.exportWorkoutsCSV = function() {
       const rows = [
-        ['Tuần', 'Thứ', 'Buổi tập', 'Trạng thái ngày', 'Tên bài tập', 'Dụng cụ', 'Mức tạ / Dây', 'Đơn vị', 'Số Sets', 'Reps từng Set', 'Lưu ý kỹ thuật', 'Hoàn thành']
+        ['Tuần', 'Thứ', 'Buổi tập', 'Trạng thái ngày', 'Tên bài tập', 'Hệ bài tập', 'Dụng cụ / Địa điểm', 'Mức tạ / Dây', 'Đơn vị', 'Số Sets', 'Reps từng Set', 'Các quãng (dốc | tốc độ | thời gian)', 'Lưu ý kỹ thuật', 'Hoàn thành']
       ];
 
       getSortedWeekIds().forEach((wId) => {
@@ -4625,11 +5404,21 @@
         DAYS_OF_WEEK.forEach((d) => {
           const dayObj = week.days[d.key];
           if (dayObj.isRest) {
-            rows.push([wId, d.label, dayObj.title || 'Ngày nghỉ', 'Nghỉ', '', '', '', '', '', '', '', '']);
+            rows.push([wId, d.label, dayObj.title || 'Ngày nghỉ', 'Nghỉ', '', '', '', '', '', '', '', '', '', '']);
           } else if (!dayObj.exercises || dayObj.exercises.length === 0) {
-            rows.push([wId, d.label, dayObj.title || 'Buổi tập', 'Tập', '(Chưa có bài)', '', '', '', '', '', '', '']);
+            rows.push([wId, d.label, dayObj.title || 'Buổi tập', 'Tập', '(Chưa có bài)', '', '', '', '', '', '', '', '', '']);
           } else {
             dayObj.exercises.forEach((ex) => {
+              if (isCardioExercise(ex)) {
+                const intervalText = normalizeCardioIntervals(ex.intervals).map((q, i) =>
+                  `Quãng ${i + 1}: ${q.incline}% | ${q.speed} km/h | ${formatCardioDuration(q.duration)}`
+                ).join(' ; ');
+                rows.push([
+                  wId, d.label, dayObj.title || '', 'Tập', ex.name, 'Cardio', ex.equipment || '',
+                  '', '', '', '', intervalText, ex.notes || '', ex.completed ? 'Đã hoàn thành' : 'Chưa xong'
+                ]);
+                return;
+              }
               let loadExport = ex.weight;
               let unitExport = ex.unit;
               if (ex.unit === 'bw') {
@@ -4641,18 +5430,10 @@
                 unitExport = 'DÂY';
               }
               rows.push([
-                wId,
-                d.label,
-                dayObj.title || '',
-                'Tập',
-                ex.name,
-                ex.equipment || '',
-                loadExport,
-                unitExport,
-                ex.sets,
-                Array.isArray(ex.repsList) ? ex.repsList.join(', ') : '',
-                ex.notes || '',
-                ex.completed ? 'Đã hoàn thành' : 'Chưa xong'
+                wId, d.label, dayObj.title || '', 'Tập', ex.name, 'Sức mạnh / Kháng lực', ex.equipment || '',
+                loadExport, unitExport, ex.sets,
+                Array.isArray(ex.repsList) ? ex.repsList.join(', ') : '', '',
+                ex.notes || '', ex.completed ? 'Đã hoàn thành' : 'Chưa xong'
               ]);
             });
           }
@@ -4731,21 +5512,29 @@
       renderLibraryGrid();
     };
 
+    function searchExerciseLibrary(searchText, category = 'all') {
+      const query = normalizeTextForMatch(searchText);
+      return EXERCISE_LIBRARY.map(item => {
+        if (category !== 'all' && item.category !== category) return null;
+        if (!query) return { item, score: 0 };
+        const searchable = [...getExerciseAliases(item), normalizeTextForMatch(item.defaultEquipment), normalizeTextForMatch(item.muscles)];
+        let score = Math.max(0, ...searchable.map(alias => {
+          if (!alias) return 0;
+          if (alias === query) return 1;
+          if (alias.includes(query) && query.length >= 3) return 0.92;
+          if (query.includes(alias) && alias.length >= 5) return 0.84;
+          return tokenSimilarity(query, alias);
+        }));
+        return score >= 0.32 ? { item, score } : null;
+      }).filter(Boolean).sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name, 'vi')).map(row => row.item);
+    }
+
     window.renderLibraryGrid = function() {
-      const q = normalizeTextForMatch(document.getElementById('library-search-input').value);
-      const cat = appState.libraryFilter;
-
-      const filtered = EXERCISE_LIBRARY.filter((item) => {
-        const catOk = cat === 'all' || item.category === cat;
-        if (!catOk) return false;
-        if (!q) return true;
-        const hay = normalizeTextForMatch(`${item.name} ${item.viName || ''} ${item.defaultEquipment} ${item.muscles} ${item.keywords.join(' ')}`);
-        return hay.includes(q);
-      });
-
+      const queryText = document.getElementById('library-search-input').value;
+      const filtered = searchExerciseLibrary(queryText, appState.libraryFilter);
       const container = document.getElementById('library-grid-container');
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-full py-12 text-center text-sm text-slate-400">Không tìm thấy bài tập phù hợp với từ khóa "${escapeHTML(document.getElementById('library-search-input').value)}".</div>`;
+        container.innerHTML = `<div class="col-span-full py-12 text-center text-sm text-slate-400">Không tìm thấy bài tập phù hợp với từ khóa "${escapeHTML(queryText)}".</div>`;
         return;
       }
 
@@ -4801,33 +5590,10 @@
       showToast(`Đã nạp bài "${item.name}" kèm hướng dẫn kỹ thuật!`, 'success');
     };
 
-    window.pickExerciseFromLibrary = function(key) {
-      const item = EXERCISE_LIBRARY.find(e => e.key === key);
-      if (!item) return;
-      closeLibraryModal();
-
-      if (!appState.librarySelectForModal) {
-        openExerciseModal();
-      }
-
-      document.getElementById('ex-name').value = item.name;
-      document.getElementById('ex-equipment').value = item.defaultEquipment;
-      document.getElementById('ex-notes').value = item.tips;
-
-      if (item.defaultUnit === 'bw') {
-        setWeightUnit('bw');
-      } else if (item.defaultUnit === 'band') {
-        setWeightUnit('band');
-      } else {
-        setWeightUnit(item.defaultUnit || 'kg');
-      }
-
-      onExerciseInputChange();
-      showToast(`Đã nạp bài "${item.name.split('(')[0].trim()}" kèm hướng dẫn kỹ thuật!`, 'success');
-    };
+    let exerciseSvgInstanceCounter = 0;
 
     function renderExerciseSVG(svgType, bandColor = '#22c55e') {
-      const uid = svgType + '_' + bandColor.replace('#', '');
+      const uid = `${String(svgType || 'exercise').replace(/[^a-z0-9_-]/gi, '_')}_${bandColor.replace('#', '')}_${++exerciseSvgInstanceCounter}`;
       const baseGrid = `
         <defs>
           <pattern id="bp-grid-${uid}" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -4856,7 +5622,6 @@
 
       switch (svgType) {
         case 'incline_db_press':
-        case 'db_fly':
           scene = `
             <line x1="95" y1="162" x2="105" y2="128" stroke="#64748b" stroke-width="4" />
             <line x1="185" y1="162" x2="175" y2="128" stroke="#64748b" stroke-width="4" />
@@ -4875,8 +5640,26 @@
           `;
           break;
 
+        case 'db_fly':
+          scene = `
+            <line x1="92" y1="162" x2="108" y2="132" stroke="#64748b" stroke-width="4" />
+            <line x1="190" y1="162" x2="174" y2="132" stroke="#64748b" stroke-width="4" />
+            <line x1="100" y1="132" x2="178" y2="132" stroke="#475569" stroke-width="7" stroke-linecap="round" />
+            <circle cx="208" cy="74" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="198" y1="84" x2="157" y2="122" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" />
+            <polyline points="157,122 116,126 100,160" fill="none" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" />
+            <polyline points="188,91 157,57 124,48" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <polyline points="188,91 215,112 245,123" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <rect x="110" y="42" width="15" height="10" rx="3" fill="#06b6d4" />
+            <rect x="242" y="118" width="15" height="10" rx="3" fill="#06b6d4" />
+            <path d="M 118 94 Q 145 48 178 70" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            <path d="M 242 88 Q 228 122 193 125" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-amber-${uid})" />
+            ${badge(18, 16, 'Mở tay theo cung tròn', '#f59e0b')}
+            ${badge(236, 16, 'Cơ ngực', '#10b981')}
+          `;
+          break;
+
         case 'flat_db_press':
-        case 'barbell_bench':
           scene = `
             <line x1="100" y1="162" x2="100" y2="126" stroke="#64748b" stroke-width="4" />
             <line x1="220" y1="162" x2="220" y2="126" stroke="#64748b" stroke-width="4" />
@@ -4889,6 +5672,23 @@
             <rect x="193" y="45" width="30" height="10" rx="3" fill="#06b6d4" />
             <line x1="228" y1="88" x2="228" y2="42" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
             ${badge(18, 16, 'Ghế phẳng 0°', '#38bdf8')}
+            ${badge(238, 16, 'Ngực giữa', '#10b981')}
+          `;
+          break;
+
+        case 'barbell_bench':
+          scene = `
+            <line x1="100" y1="162" x2="100" y2="126" stroke="#64748b" stroke-width="4" />
+            <line x1="220" y1="162" x2="220" y2="126" stroke="#64748b" stroke-width="4" />
+            <line x1="88" y1="124" x2="235" y2="124" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" />
+            <circle cx="242" cy="112" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="230" y1="114" x2="152" y2="114" stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" />
+            <polyline points="208,108 208,66 208,48" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="114" y1="48" x2="270" y2="48" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round" />
+            <rect x="105" y="35" width="10" height="26" rx="3" fill="#06b6d4" />
+            <rect x="270" y="35" width="10" height="26" rx="3" fill="#06b6d4" />
+            <line x1="208" y1="80" x2="208" y2="40" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Thanh tạ đòn + ghế phẳng', '#38bdf8')}
             ${badge(238, 16, 'Ngực giữa', '#10b981')}
           `;
           break;
@@ -5273,6 +6073,25 @@
           `;
           break;
 
+        case 'diverging_lat_pulldown':
+          scene = `
+            <rect x="140" y="94" width="80" height="14" rx="5" fill="#475569" />
+            <rect x="148" y="108" width="64" height="10" rx="4" fill="#334155" />
+            <circle cx="180" cy="42" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="54" x2="180" y2="104" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="180" y1="64" x2="142" y2="78" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="180" y1="64" x2="218" y2="78" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <path d="M 142 78 L 132 42 L 120 32" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" />
+            <path d="M 218 78 L 228 42 L 240 32" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" />
+            <line x1="120" y1="32" x2="120" y2="90" stroke="#64748b" stroke-width="4" />
+            <line x1="240" y1="32" x2="240" y2="90" stroke="#64748b" stroke-width="4" />
+            <path d="M 120 40 Q 132 76 150 88" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            <path d="M 240 40 Q 228 76 210 88" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Hai tay đòn chuyển động độc lập', '#38bdf8')}
+            ${badge(242, 16, 'Cơ xô', '#10b981')}
+          `;
+          break;
+
         case 'lat_pulldown':
           scene = `
             <line x1="238" y1="20" x2="238" y2="162" stroke="#475569" stroke-width="5" />
@@ -5291,7 +6110,6 @@
           break;
 
         case 'seated_cable_row':
-        case 'vertical_row_machine':
           scene = `
             <line x1="92" y1="26" x2="92" y2="162" stroke="#475569" stroke-width="5" />
             <circle cx="98" cy="134" r="6" fill="#06b6d4" />
@@ -5304,6 +6122,24 @@
             <line x1="214" y1="92" x2="188" y2="92" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
             ${badge(18, 16, 'Siết chặt bả vai', '#f59e0b')}
             ${badge(232, 16, 'Lưng giữa & Xô', '#10b981')}
+          `;
+          break;
+
+        case 'vertical_row_machine':
+          scene = `
+            <rect x="98" y="72" width="24" height="86" rx="5" fill="#334155" stroke="#64748b" stroke-width="2" />
+            <rect x="226" y="72" width="24" height="86" rx="5" fill="#334155" stroke="#64748b" stroke-width="2" />
+            <line x1="110" y1="82" x2="238" y2="82" stroke="#64748b" stroke-width="6" />
+            <circle cx="174" cy="38" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="174" y1="50" x2="174" y2="112" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="174" y1="70" x2="140" y2="96" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="174" y1="70" x2="208" y2="96" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="140" y1="96" x2="154" y2="120" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+            <line x1="208" y1="96" x2="194" y2="120" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+            <rect x="140" y="118" width="68" height="12" rx="5" fill="#475569" />
+            <line x1="140" y1="95" x2="155" y2="111" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Máy chèo lưng có đệm ngực', '#38bdf8')}
+            ${badge(240, 16, 'Lưng giữa', '#10b981')}
           `;
           break;
 
@@ -5418,14 +6254,32 @@
           break;
 
         case 'barbell_squat':
-        case 'bw_squat':
           scene = `
             <circle cx="176" cy="58" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
             <line x1="176" y1="70" x2="166" y2="108" stroke="#cbd5e1" stroke-width="6.5" stroke-linecap="round" />
             <polyline points="166,108 194,124 198,160" fill="none" stroke="#10b981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-            ${svgType === 'barbell_squat' ? '<rect x="166" y="64" width="20" height="8" rx="3" fill="#06b6d4" />' : ''}
+            <line x1="150" y1="68" x2="202" y2="68" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round" />
+            <rect x="140" y="60" width="10" height="17" rx="3" fill="#06b6d4" />
+            <rect x="202" y="60" width="10" height="17" rx="3" fill="#06b6d4" />
             <line x1="176" y1="118" x2="176" y2="148" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
-            ${badge(18, 16, svgType === 'barbell_squat' ? 'Gánh tạ đòn Squat' : 'Bodyweight Squat (BW)', '#10b981')}
+            ${badge(18, 16, 'Thanh tạ đặt trên lưng trên', '#10b981')}
+            ${badge(234, 16, 'Đùi trước & Mông', '#38bdf8')}
+          `;
+          break;
+
+        case 'bw_squat':
+          scene = `
+            <circle cx="178" cy="40" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="178" y1="52" x2="176" y2="94" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="176" y1="64" x2="142" y2="76" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="142" y1="76" x2="122" y2="92" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="176" y1="64" x2="210" y2="76" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="210" y1="76" x2="230" y2="92" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <polyline points="176,94 148,118 132,156" fill="none" stroke="#10b981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+            <polyline points="176,94 204,118 220,156" fill="none" stroke="#94a3b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="122" y1="92" x2="230" y2="92" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" />
+            <path d="M 250 84 L 250 132" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Squat với trọng lượng cơ thể', '#10b981')}
             ${badge(234, 16, 'Đùi trước & Mông', '#38bdf8')}
           `;
           break;
@@ -5483,11 +6337,83 @@
           `;
           break;
 
+        case 'band_pull_apart':
+          scene = `
+            <circle cx="180" cy="38" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="50" x2="180" y2="112" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="172" y1="112" x2="164" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <line x1="188" y1="112" x2="196" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <line x1="180" y1="68" x2="142" y2="72" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <line x1="180" y1="68" x2="218" y2="72" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <path d="M 142 72 L 112 72 M 218 72 L 248 72" fill="none" stroke="${bandColor}" stroke-width="4" stroke-linecap="round" />
+            <path d="M 166 94 Q 132 82 112 72 M 194 94 Q 228 82 248 72" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Tách dây sang hai bên', '#38bdf8')}
+            ${badge(246, 16, 'Vai sau', '#10b981')}
+          `;
+          break;
+
         case 'band_face_pull':
-        case 'band_row':
+          scene = `
+            <circle cx="180" cy="38" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="50" x2="180" y2="112" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="172" y1="112" x2="164" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <line x1="188" y1="112" x2="196" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <polyline points="174,62 150,42 132,52" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <polyline points="186,62 210,42 228,52" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <path d="M 132 52 Q 180 20 228 52" fill="none" stroke="${bandColor}" stroke-width="4" />
+            <path d="M 152 76 Q 148 54 132 52 M 208 76 Q 212 54 228 52" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Kéo về hai bên mặt', '#38bdf8')}
+            ${badge(246, 16, 'Vai sau & xoay vai', '#10b981')}
+          `;
+          break;
+
+        case 'band_biceps_curl':
+          scene = `
+            <circle cx="180" cy="36" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="48" x2="180" y2="112" stroke="#cbd5e1" stroke-width="7" />
+            <line x1="172" y1="112" x2="168" y2="158" stroke="#94a3b8" stroke-width="5" />
+            <line x1="188" y1="112" x2="192" y2="158" stroke="#94a3b8" stroke-width="5" />
+            <line x1="180" y1="68" x2="146" y2="100" stroke="#e2e8f0" stroke-width="5" />
+            <polyline points="146,100 146,72 134,62" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <path d="M 180 158 Q 150 140 146 100 L 146 72" fill="none" stroke="${bandColor}" stroke-width="3" stroke-dasharray="5,3" />
+            <path d="M 122 126 Q 118 94 138 74" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Giữ khuỷu tay sát sườn', '#38bdf8')}
+            ${badge(246, 16, 'Bắp tay trước', '#10b981')}
+          `;
+          break;
+
+        case 'band_triceps_pushdown':
+          scene = `
+            <circle cx="180" cy="42" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="54" x2="180" y2="116" stroke="#cbd5e1" stroke-width="7" />
+            <line x1="172" y1="116" x2="164" y2="160" stroke="#94a3b8" stroke-width="5" />
+            <line x1="188" y1="116" x2="196" y2="160" stroke="#94a3b8" stroke-width="5" />
+            <line x1="172" y1="68" x2="148" y2="94" stroke="#e2e8f0" stroke-width="5" />
+            <line x1="148" y1="94" x2="148" y2="136" stroke="#e2e8f0" stroke-width="5" />
+            <line x1="128" y1="24" x2="128" y2="136" stroke="#64748b" stroke-width="3" stroke-dasharray="4,3" />
+            <path d="M 148 104 L 148 144" stroke="${bandColor}" stroke-width="3" fill="none" />
+            <path d="M 168 104 L 168 146" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Duỗi cẳng tay xuống', '#38bdf8')}
+            ${badge(246, 16, 'Tay sau', '#10b981')}
+          `;
+          break;
+
         case 'band_chest_press':
-        case 'band_arms':
-        default:
+          scene = `
+            <circle cx="180" cy="38" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+            <line x1="180" y1="50" x2="180" y2="112" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
+            <line x1="172" y1="112" x2="164" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <line x1="188" y1="112" x2="196" y2="160" stroke="#94a3b8" stroke-width="5.5" />
+            <polyline points="174,62 148,72 112,82" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <polyline points="186,62 212,72 248,82" fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round" />
+            <path d="M 112 82 Q 180 152 248 82" fill="none" stroke="${bandColor}" stroke-width="4" stroke-linecap="round" />
+            <path d="M 150 72 L 118 44 M 210 72 L 242 44" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-emerald-${uid})" />
+            ${badge(18, 16, 'Đẩy hai tay ra trước', '#38bdf8')}
+            ${badge(246, 16, 'Ngực & tay sau', '#10b981')}
+          `;
+          break;
+
+        case 'band_row':
           scene = `
             <circle cx="180" cy="40" r="10" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
             <line x1="180" y1="52" x2="180" y2="108" stroke="#cbd5e1" stroke-width="7" stroke-linecap="round" />
@@ -5502,12 +6428,36 @@
             ${badge(234, 16, 'Kháng lực liên tục', '#10b981')}
           `;
           break;
+
+        default:
+          scene = `<text x="180" y="100" text-anchor="middle" fill="#94a3b8" font-size="14">Chưa có vector</text>`;
+          break;
       }
 
       return `
         <svg viewBox="0 0 360 185" class="w-full h-auto block select-none" role="img" aria-label="Minh họa kỹ thuật">
           ${baseGrid}
           ${scene}
+        </svg>
+      `;
+    }
+
+    function renderUnmatchedExerciseSVG() {
+      const uid = `custom_exercise_${++exerciseSvgInstanceCounter}`;
+      return `
+        <svg viewBox="0 0 360 185" class="w-full h-auto block select-none" role="img" aria-label="Bài tập tùy chỉnh chưa có minh họa chuyên biệt">
+          <defs>
+            <pattern id="custom-grid-${uid}" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" stroke-width="0.6" />
+            </pattern>
+          </defs>
+          <rect width="360" height="185" fill="#080d19" />
+          <rect width="360" height="185" fill="url(#custom-grid-${uid})" />
+          <circle cx="180" cy="55" r="13" fill="#1e293b" stroke="#94a3b8" stroke-width="2.5" />
+          <path d="M 180 70 L 180 119 M 180 86 L 148 104 M 180 86 L 212 104 M 180 119 L 160 158 M 180 119 L 200 158" fill="none" stroke="#94a3b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="244" cy="57" r="19" fill="#0f172a" stroke="#22c55e" stroke-width="2" />
+          <text x="244" y="65" text-anchor="middle" fill="#22c55e" font-size="25" font-weight="800">?</text>
+          <text x="180" y="178" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="700">CHƯA CÓ VECTOR RIÊNG TRONG THƯ VIỆN</text>
         </svg>
       `;
     }
