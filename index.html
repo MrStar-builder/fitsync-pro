@@ -3546,8 +3546,40 @@
         : 'Đã tắt Rush-In, khôi phục khối lượng gốc của buổi tập.', 'success');
     };
 
-    // ==================== QUẢN LÝ LỊCH TẬP TUẦN & BÀI TẬP ====================
-    function renderCardioExerciseCard(ex, index, activeMode) {
+    // ==================== SẮP XẾP THỨ TỰ BÀI TẬP TRONG BUỔI ====================
+    // Thứ tự được lưu trực tiếp bằng vị trí phần tử trong day.exercises.
+    // Không thêm trường mới vào từng bài tập hoặc thay đổi schema Firestore.
+    function renderExerciseOrderControls(ex, index, total) {
+      const safeId = escapeHTML(String(ex.id || ''));
+      const firstDisabled = index <= 0 ? 'disabled' : '';
+      const upDisabled = index <= 0 ? 'disabled' : '';
+      const downDisabled = index >= total - 1 ? 'disabled' : '';
+      const lastDisabled = index >= total - 1 ? 'disabled' : '';
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-900/75 border border-slate-800 px-3 py-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Thứ tự ưu tiên</span>
+            <span class="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-[10px] font-extrabold">#${index + 1} / ${total}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="moveExerciseInDay('${safeId}', 'first')" ${firstDisabled}
+              class="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 text-cyan-200 text-[10px] font-extrabold transition disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Đưa bài tập lên đầu buổi" title="Đưa lên đầu buổi">⇈ Đầu buổi</button>
+            <button type="button" onclick="moveExerciseInDay('${safeId}', 'up')" ${upDisabled}
+              class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-extrabold transition disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Di chuyển bài tập lên một vị trí" title="Lên một vị trí">↑</button>
+            <button type="button" onclick="moveExerciseInDay('${safeId}', 'down')" ${downDisabled}
+              class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-extrabold transition disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Di chuyển bài tập xuống một vị trí" title="Xuống một vị trí">↓</button>
+            <button type="button" onclick="moveExerciseInDay('${safeId}', 'last')" ${lastDisabled}
+              class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px] font-extrabold transition disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Đưa bài tập xuống cuối buổi" title="Đưa xuống cuối buổi">Cuối ⇊</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCardioExerciseCard(ex, index, activeMode, totalExercises) {
       const prescription = getEffectiveExercisePrescription(ex, activeMode, index);
       const intervals = normalizeCardioIntervals(prescription.intervals);
       const totalDuration = getCardioDurationMinutes(intervals);
@@ -3593,6 +3625,7 @@
           </div>
           ${modeNotice}
           ${ex.notes ? `<div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex items-start gap-2"><span class="shrink-0">💡</span><span><strong class="text-amber-300">Ghi chú:</strong> ${escapeHTML(ex.notes)}</span></div>` : ''}
+          ${renderExerciseOrderControls(ex, index, totalExercises)}
           <div class="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-800/80">
             <button type="button" onclick="openExerciseModal('${escapeHTML(ex.id)}')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">✏️ Sửa</button>
             <button type="button" onclick="duplicateExercise('${escapeHTML(ex.id)}')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition">📋 Nhân bản</button>
@@ -3778,7 +3811,7 @@
       }
 
       exListContainer.innerHTML = exercises.map((ex, index) => {
-        if (isCardioExercise(ex)) return renderCardioExerciseCard(ex, index, activeMode);
+        if (isCardioExercise(ex)) return renderCardioExerciseCard(ex, index, activeMode, exercises.length);
         const matchedLib = findMatchingExerciseInLibrary(ex.name, ex.equipment);
         const recommendedRestSeconds = getRecommendedRestSecondsForName(ex.name, ex.equipment);
         const isIllusOpen = !!appState.expandedCardIllustrations[ex.id];
@@ -3966,6 +3999,9 @@
               ` : ''}
             </div>
 
+            <!-- Điều chỉnh thứ tự ưu tiên trong buổi tập -->
+            ${renderExerciseOrderControls(ex, index, exercises.length)}
+
             <!-- Hàng nút thao tác dưới cùng thẻ -->
             <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80 flex-wrap">
               <div class="flex items-center gap-1.5 flex-wrap">
@@ -4100,6 +4136,36 @@
       ex.completed = !ex.completed;
       renderWorkoutSection();
       persistUserData();
+    };
+
+    window.moveExerciseInDay = function(exId, direction) {
+      const dayObj = appState.data?.weeks?.[appState.activeWeekId]?.days?.[appState.selectedDay];
+      const exercises = dayObj?.exercises;
+      if (!Array.isArray(exercises) || exercises.length < 2) return;
+
+      const fromIndex = exercises.findIndex(ex => String(ex.id) === String(exId));
+      if (fromIndex < 0) return;
+
+      let toIndex = fromIndex;
+      if (direction === 'first') toIndex = 0;
+      else if (direction === 'last') toIndex = exercises.length - 1;
+      else if (direction === 'up') toIndex = Math.max(0, fromIndex - 1);
+      else if (direction === 'down') toIndex = Math.min(exercises.length - 1, fromIndex + 1);
+      else return;
+
+      if (toIndex === fromIndex) return;
+
+      const [movedExercise] = exercises.splice(fromIndex, 1);
+      exercises.splice(toIndex, 0, movedExercise);
+
+      renderWorkoutSection();
+      persistUserData();
+      const positionLabel = toIndex === 0
+        ? 'đầu buổi'
+        : toIndex === exercises.length - 1
+          ? 'cuối buổi'
+          : `vị trí ${toIndex + 1}`;
+      showToast(`Đã chuyển bài tập đến ${positionLabel}.`, 'success');
     };
 
     window.duplicateExercise = function(exId) {
